@@ -13,3 +13,12 @@ def split_timeseries(df, train_s, train_e, test_s, test_e): # format of dates ha
         X_test = df.loc[test_s:test_e]
         
         return X_train, X_test
+    
+def standardize(train_set, test_set, cols):
+    mu = train_set[cols].mean()
+    std = train_set[cols].std()
+    
+    train_set_std = (train_set - mu) / std
+    test_set_std = (test_set - mu) / std
+    
+    return train_set_std, test_set_std
