@@ -4,6 +4,15 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import TimeSeriesSplit
 import datetime as dt
 
+def read_our_data(file_name):
+    file_dir = './data/'+file_name
+    df = pd.read_csv(file_dir)
+    cols_check = ['Timestamp', 'Date']
+    for col in cols_check:
+        if col in df.columns:
+            df[col] = pd.to_datetime([col])
+    return df
+
 def split_timeseries(df, train_s, train_e, test_s, test_e): # format of dates has to be YYYY-mm-dd
     if (train_e <= train_s):
         print('Incoherent dates for the TRAIN set!')
@@ -48,3 +57,11 @@ def standardize(train_set, test_set, cols):
     test_set_std = (test_set - mu) / std
     
     return train_set_std, test_set_std
+
+def model_evaluation(true, pred):
+    print('Mean Absolute Error (MAE):', metrics.mean_absolute_error(true, pred))
+    print('Mean Squared Error (MSE):', metrics.mean_squared_error(true, pred))
+    print('Root Mean Squared Error (RMSE):', np.sqrt(metrics.mean_squared_error(true, pred)))
+    mape = np.mean(np.abs((true - pred) / np.abs(true)))
+    print('Mean Absolute Percentage Error (MAPE):', round(mape * 100, 2))
+    print('Accuracy:', round(100*(1 - mape), 2))
