@@ -24,7 +24,14 @@ def read_our_data(file_name):
 #         X_test = df.loc[test_s:test_e]
         
 #         return X_train, X_test
-    
+
+def lag_df(df, col, lags):
+    df_lagged = df.copy()
+    for lag in lags:
+        new_col = str(col) + '-lag' + str(lag)
+        df_lagged[new_col] = df[col].shift(lag)
+    return df_lagged
+
 def split_timeseries(df, train_start, cnt, method, perc = 0.85): # train_start array of dates; formatted YYYY-mm-dd
     # method {0 - moving blocks, 1 - from the begging}
     if 'Timestamp' in df.columns:
@@ -67,13 +74,14 @@ def standardize(train_set, test_set, cols):
     std = train_set[cols].std(axis = 0)
     
     train_set_std = train_set.copy()
-    test_set_std = test_set.cop()
+    test_set_std = test_set.copy()
     train_set_std[cols] = (train_set[cols] - mu) / std
     test_set_std[cols] = (test_set[cols] - mu) / std
     
     return train_set_std, test_set_std
 
 def model_evaluation(true, pred):
+    
     print('Mean Absolute Error (MAE):', metrics.mean_absolute_error(true, pred))
     print('Mean Squared Error (MSE):', metrics.mean_squared_error(true, pred))
     print('Root Mean Squared Error (RMSE):', np.sqrt(metrics.mean_squared_error(true, pred)))
