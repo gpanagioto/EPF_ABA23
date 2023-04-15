@@ -18,7 +18,7 @@ client = EntsoePandasClient(api_key = api_key)
 print(client.retry_count)
 
 #dates
-START_DATE = '20180101'
+START_DATE = '20171224'
 END_DATE = dt.datetime.now().date().strftime("%Y%m%d")
 
 # countries
