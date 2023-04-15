@@ -2,7 +2,7 @@ import pandas as pd
 import datetime as dt
 import numpy as np
 import os
-from data_code import DataRetrieval
+from data_code import DataRetrieval, Directory
 import argparse
 from entsoe import EntsoePandasClient
 import configparser
@@ -13,9 +13,9 @@ with open("config.yaml", "r") as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
 
 api_key = config["api_key"]
-#print(api_key)
 
 client = EntsoePandasClient(api_key = api_key)
+print(client.retry_count)
 
 #dates
 START_DATE = '20180101'
@@ -31,7 +31,9 @@ def get_arguments():
     parser = argparse.ArgumentParser(description='retrieving data from Entsoe \
                                      for the EPF Project')
     parser.add_argument('--data_type', type=str, default=None,
-                          help='The type of data we want (main, imports, exports)')
+                          help='The type of data we want ["main", "imports", "exports"]')
+    parser.add_argument('--query', type=str, default=None,
+                          help='The data query in case of main data choices=["DayAheadPrices", "LoadAndForecast", "WindSolarForecast"]')    
     parser.add_argument('--country_code', type=str, default=COUNTRY_CODE,
                           help='The country we want the data for')
     parser.add_argument('--country_to', type=str, default=None,
@@ -57,26 +59,34 @@ def main():
     country = args.country_code
     save_path = args.save_path
     data_type = args.data_type
+    query = args.query
 
-    if not os.path.exists('data' + '/' + data_type + '/' + country):
-        os.makedirs('data' + '/' + data_type + '/' + country)
-    save_path = 'data' + '/' + data_type + '/' + country + '/'
-
-    data_retrieving = DataRetrieval(save_path, client=client, start_date=start, end_date=end, country_code=country)
+    data_retrieving = DataRetrieval(client=client, start_date=start, end_date=end, country_code=country)
     
     print(f"Data Period: {start} - {end}.")
     print("\n --------- Start Scraping --------- \n")
 
     if data_type == 'imports':
-        data_retrieving.Imports()      
+        save_path = Directory(data_type, country, None)
+        data_retrieving.Imports(save_path)
+
     elif data_type == 'exports':
         country_to = args.country_to
+        save_path = Directory(data_type, country, country_to)
         print(f"Exports data to {country_to}")
-        data_retrieving.Exports(country_to=country_to)      
-    else:
-        print(f"Main data for {country}")
-        data_retrieving.Main()
+        data_retrieving.Exports(save_path, country_to=country_to)
 
+    else:
+        save_path = Directory(data_type, country, None)
+        print(f"{query} data for {country}")
+
+        if query == "DayAheadPrices":
+           data_retrieving.DayAheadPrices(save_path)
+        elif query == "LoadAndForecast":
+            data_retrieving.LoadAndForecast(save_path)
+        else:
+            data_retrieving.WindSolarForecast(save_path)
+          
     print("Total elapsed time: {:.2f} min.".format((time.time() - start_time) / 60))
     
 if __name__ == '__main__':
