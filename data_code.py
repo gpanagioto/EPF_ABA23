@@ -16,9 +16,9 @@ def Directory(data_type, country, country_to):
             os.makedirs('data' + '/' + data_type + '/' + country)
         save_path = 'data' + '/' + data_type + '/' + country + '/'
     else:
-        if not os.path.exists('data' + '/' + data_type + '/' + country + '/' + country_to):
-            os.makedirs('data' + '/' + data_type + '/' + country + '/' + country_to)
-        save_path = 'data' + '/' + data_type + '/' + country + '/' + country_to + '/'
+        if not os.path.exists('data' + '/' + data_type + '/' + country + '/' ):
+            os.makedirs('data' + '/' + data_type + '/' + country + '/' )
+        save_path = 'data' + '/' + data_type + '/' + country + '/' 
 
     return save_path
 
@@ -55,5 +55,6 @@ class DataRetrieval():
 
     def Exports(self, save_path: str, country_to:str) -> None:
 
+        name = country_to + '_Exports'
         exports = self.client.query_crossborder_flows(self.country, country_code_to=country_to, start = self.start_date, end = self.end_date)
-        DataSave(exports,  save_path, 'Exports')
+        DataSave(exports,  save_path, name)
