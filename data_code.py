@@ -2,46 +2,58 @@ import pandas as pd
 import datetime as dt
 import numpy as np
 from entsoe import EntsoePandasClient
-
+import os
 
 def DataSave(data: pd.DataFrame, save_path: str, name: str) -> None:
     
     data.to_csv(save_path + name + '.csv')
     print(f"Size of {name} is {data.shape[0]} rows.\n")
 
+def Directory(data_type, country, country_to):
+     
+    if data_type != "exports":
+        if not os.path.exists('data' + '/' + data_type + '/' + country): 
+            os.makedirs('data' + '/' + data_type + '/' + country)
+        save_path = 'data' + '/' + data_type + '/' + country + '/'
+    else:
+        if not os.path.exists('data' + '/' + data_type + '/' + country + '/' + country_to):
+            os.makedirs('data' + '/' + data_type + '/' + country + '/' + country_to)
+        save_path = 'data' + '/' + data_type + '/' + country + '/' + country_to + '/'
+
+    return save_path
+
 class DataRetrieval():
 
-    def __init__(self, save_path: str, client: EntsoePandasClient, start_date: str, end_date:str, country_code:str) -> None:
+    def __init__(self, client: EntsoePandasClient, start_date: str, end_date:str, country_code:str) -> None:
     
-        self.save_path = save_path
         self.client = client
         self.start_date = start_date
         self.end_date = end_date
         self.country = country_code
-
-    def Main(self) -> None:
-
-        
-        #
+    
+    def DayAheadPrices(self, save_path: str) -> None:
         day_ahead_prices = self.client.query_day_ahead_prices(self.country, start = self.start_date, end = self.end_date)
-        DataSave(day_ahead_prices, self.save_path, 'Day_Ahead_Prices')
+        DataSave(day_ahead_prices, save_path, 'Day_Ahead_Prices')
 
-        #
+
+    def LoadAndForecast(self, save_path: str) -> None:
+
         load_and_forecast = self.client.query_load_and_forecast(self.country, start = self.start_date, end = self.end_date)
-        DataSave(load_and_forecast, self.save_path, 'Load_And_Forecast')
+        DataSave(load_and_forecast, save_path, 'Load_And_Forecast')
 
-        #
+    def WindSolarForecast(self, save_path: str) -> None:
+
         wind_solar_forecast = self.client.query_wind_and_solar_forecast(self.country, start = self.start_date, end = self.end_date)
-        DataSave(wind_solar_forecast, self.save_path, 'Wind_Solar_Forecast')
+        DataSave(wind_solar_forecast, save_path, 'Wind_Solar_Forecast')
 
     
-    def Imports(self) -> None:
-       
+    def Imports(self, save_path: str) -> None:
+
         imports = self.client.query_import(country_code = self.country, start = self.start_date, end = self.end_date)
-        DataSave(imports, self.save_path, 'Imports')
+        DataSave(imports, save_path, 'Imports')
 
 
-    def Exports(self, country_to:str) -> None:
+    def Exports(self, save_path: str, country_to:str) -> None:
 
         exports = self.client.query_crossborder_flows(self.country, country_code_to=country_to, start = self.start_date, end = self.end_date)
-        DataSave(exports, self.save_path, 'Exports')
+        DataSave(exports,  save_path, 'Exports')
