@@ -2,7 +2,7 @@ import pandas as pd
 import datetime as dt
 import numpy as np
 import os
-import re
+from data_code import DataRetrieval
 import argparse
 from entsoe import EntsoePandasClient
 import configparser
@@ -19,11 +19,10 @@ client = EntsoePandasClient(api_key = api_key)
 
 #dates
 START_DATE = '20180101'
-END_DATE = '20221231'
+END_DATE = dt.datetime.now().date().strftime("%Y%m%d")
 
 # countries
 COUNTRY_CODE = 'DK_2' # Denmark (Copenhagen)
-
 
 # the path where the data will be saved
 SAVE_PATH = "data/"
@@ -31,8 +30,12 @@ SAVE_PATH = "data/"
 def get_arguments():
     parser = argparse.ArgumentParser(description='retrieving data from Entsoe \
                                      for the EPF Project')
+    parser.add_argument('--data_type', type=str, default=None,
+                          help='The type of data we want (main, imports, exports)')
     parser.add_argument('--country_code', type=str, default=COUNTRY_CODE,
-                          help='')
+                          help='The country we want the data for')
+    parser.add_argument('--country_to', type=str, default=None,
+                          help='The country the exports go to')
     parser.add_argument('--start_date',type=str, default=START_DATE,
                         help='Data period starts this date')
     parser.add_argument('--end_date',type=str, default=END_DATE,
@@ -50,35 +53,29 @@ def main():
     # period
     start = pd.Timestamp(args.start_date, tz = 'Europe/Copenhagen')
     end = pd.Timestamp(args.end_date, tz = 'Europe/Copenhagen')
+
     country = args.country_code
     save_path = args.save_path
+    data_type = args.data_type
 
-    if not os.path.exists('data/' + country):
-        os.makedirs('data/' + country)
-    save_path = 'data/' + country + '/'
-    print(save_path)
+    if not os.path.exists('data' + '/' + data_type + '/' + country):
+        os.makedirs('data' + '/' + data_type + '/' + country)
+    save_path = 'data' + '/' + data_type + '/' + country + '/'
 
-
+    data_retrieving = DataRetrieval(save_path, client=client, start_date=start, end_date=end, country_code=country)
+    
     print(f"Data Period: {start} - {end}.")
-    print(f"Country: {country}.")
-
     print("\n --------- Start Scraping --------- \n")
 
-    # 
-    day_ahead_prices = client.query_day_ahead_prices(args.country_code, start = start, end = end)
-    day_ahead_prices.to_csv(save_path + 'day_ahead_prices.csv')
-    print(f"Size Day Ahead Prices is {day_ahead_prices.shape[0]} rows.\n")
-
-    #
-    load_and_forecast = client.query_load_and_forecast(args.country_code, start = start, end = end)
-    load_and_forecast.to_csv(save_path + 'load_and_forecast.csv')
-    print(f"Size Load And Forecast is {load_and_forecast.shape[0]} rows.\n")
-
-    #
-    wind_solar_forecast = client.query_wind_and_solar_forecast(args.country_code, start = start, end = end)
-    wind_solar_forecast.to_csv(save_path + 'wind_solar_forecast.csv')
-    print(f"Size Wind Solar Forecast is {wind_solar_forecast.shape[0]} rows.\n")
-
+    if data_type == 'imports':
+        data_retrieving.Imports()      
+    elif data_type == 'exports':
+        country_to = args.country_to
+        print(f"Exports data to {country_to}")
+        data_retrieving.Exports(country_to=country_to)      
+    else:
+        print(f"Main data for {country}")
+        data_retrieving.Main()
 
     print("Total elapsed time: {:.2f} min.".format((time.time() - start_time) / 60))
     
