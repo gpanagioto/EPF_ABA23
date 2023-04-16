@@ -12,6 +12,7 @@ import seaborn as sns
 
 import xgboost as xg
 
+#%%
 def read_our_data(file_name):
     file_dir = './data/'+file_name
     df = pd.read_csv(file_dir)
@@ -51,10 +52,10 @@ def split_timeseries(df, train_start, cnt, method, perc = 0.85): # train_start a
         test_start = train_end + pd.DateOffset(days=1)
     
 
-    X_train = df.loc[start:train_end]
-    X_test = df.loc[test_start:end]
+    trainset = df.loc[start:train_end]
+    testset = df.loc[test_start:end]
        
-    return X_train, X_test
+    return trainset, testset
 
 def get_feature_target(df, features, target):
     df.reset_index(inplace = True)
@@ -77,13 +78,14 @@ def standardize(train_set, test_set, cols):
     return train_set_std, test_set_std
 
 #%%
-def build_lr(x_train, y_train, x_test):
+def build_lr(x_train, y_train, x_test): # CONSIDER USING STATSTOOLS.OLS AS IT PROVIDES TTEST
     lr = LinearRegression()
     lr.fit(x_train, y_train)
     model_ = lr
     ypred = model_.predict(x_test)
+    params = model_.get_params()
 
-    return ypred, model_
+    return ypred, params
 
 def build_ma(df, target, pred_window): # pred_window has to be in hours
     start = min(df.index)
@@ -113,8 +115,9 @@ def build_rf(x_train, y_train, x_test, random_search = False):
         model_ = rf
         
     ypred = model_.predict(x_test)
+    params = model_.get_params()
     
-    return ypred, model_
+    return ypred, params
 
 def build_xgb(x_train, y_train, x_test):
     xgb = xg.XGBRegressor(seed = 42)
@@ -122,8 +125,9 @@ def build_xgb(x_train, y_train, x_test):
     
     model_= xgb
     ypred = model_.predict(x_test)
+    params = model_.params()
 
-    return ypred, model_
+    return ypred, params
 
 def nn (x_train, y_train, x_test, y_test):
 
