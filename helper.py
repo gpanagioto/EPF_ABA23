@@ -76,27 +76,38 @@ def standardize(train_set, test_set, cols):
     
     return train_set_std, test_set_std
 
-def build_baseline(x_train, y_train, x_test, y_test, timeframe):
-    if timeframe == 'short_term':
-        lr = LinearRegression()
-        lr.fit(x_train, y_train)
-        model_ = lr
-        ypred = model_.predict(x_test)
+#%%
+def build_lr(x_train, y_train, x_test):
+    lr = LinearRegression()
+    lr.fit(x_train, y_train)
+    model_ = lr
+    ypred = model_.predict(x_test)
+
     return ypred, model_
 
-def build_rft(x_train,y_train,x_test,y_test, random_search = False):
-    # perform randomized search cross validation
+def build_ma(df, target, pred_window): # pred_window has to be in hours
+    start = min(df.index)
+    end = max(df.index) + dt.timedelta(hours = pred_window)
+    timeframe = pd.date_range(start = start, end = end, freq = '1H')
+
+    df_ma = pd.DataFrame( index = timeframe)
+    df_ma = df_ma.join(df[target])
+    col_name = 'lag' + str(pred_window)
+    df_ma[col_name] = df_ma[target].shift(pred_window)
+    df_ma['pred'] = df_ma[col_name].rolling(5, closed = 'left').mean() # inmediate -1, -2, -3, -4, -5 lags were found relevant
+
+    return df_ma
+
+def build_rf(x_train, y_train, x_test, random_search = False):
     rf = RandomForestRegressor(random_state = 42, min_samples_split = 10)
-    if random_search:
-        rf_grid = {'max_depth': [None, 3, 5, 10],
-                   'min_samples_split': np.arange(2, 20, 2),
-                   'min_samples_leaf': np.arange(1, 20, 2)}
-        rf = RandomizedSearchCV(estimator = rf, param_distributions = rf_grid, n_iter = 30, cv = 3, random_state=42, n_jobs = -1)
+    if random_search: # perform randomized search cross validation
+        rf_grid = {'max_depth': [3, 7, 10],
+                   'min_samples_split': np.arange(2, 30, 2),
+                   'min_samples_leaf': np.arange(2, 15, 2)}
+        rf = RandomizedSearchCV(estimator = rf, param_distributions = rf_grid, n_iter = 30, cv = 3, random_state = 42, n_jobs = -1)
         rf.fit(x_train, y_train)
-        # the optimal parameters
-        rf.best_estimator_.get_params()
-        # evaluate the optimal model
-        model_ = rf.best_estimator_
+        rf.best_estimator_.get_params() # optimal parameters
+        model_ = rf.best_estimator_ # evaluate optimal model
     else:
         rf.fit(x_train, y_train)
         model_ = rf
@@ -105,7 +116,7 @@ def build_rft(x_train,y_train,x_test,y_test, random_search = False):
     
     return ypred, model_
 
-def build_xgb(x_train,y_train,x_test,y_test):
+def build_xgb(x_train, y_train, x_test):
     xgb = xg.XGBRegressor(seed = 42)
     xgb.fit(x_train, y_train)
     
@@ -114,55 +125,70 @@ def build_xgb(x_train,y_train,x_test,y_test):
 
     return ypred, model_
 
-def run_model(model_type, df, k_folds, split_method, train_start,
-              features, target, cols_std, timeframe): # argument timeframe is necessary to choose baseline
-    ypred = []
-    models = []
-    for k in range(k_folds):
-        # split in train and test set
-        train_set, test_set = split_timeseries(df, train_start, k, method = split_method)
+def nn (x_train, y_train, x_test, y_test):
 
-        # get features and target
-        X_train, y_train = get_feature_target(train_set, features, target)
-        X_test, y_test = get_feature_target(test_set, features, target)
+    model_ = nn
+    ypred = model_.predict(x_test)
+    return ypred, model_
 
-        # standardize
-        X_train_std, X_test_std = standardize(X_train, X_test, cols_std)
+def run_model(model_type, df, k_folds, split_method, train_start, features, target, cols_std, pred_window = []): # argument timeframe is necessary to choose baseline
+    # model_type: lr (linear regression), ma (moving average), rf (random forest), xgb (XGBoost), nn (neural network)
 
-        if model_type == 'baseline':
-            yhat, model_ = build_baseline(X_train_std, y_train, X_test_std, y_test, timeframe = timeframe)
-        elif model_type == 'rft':
-            yhat, model_ = build_rft(X_train_std, y_train, X_test_std, y_test, random_search = True)
-        elif model_type == 'xgb':
-            yhat, model_ = build_xgb(X_train_std, y_train, X_test_std, y_test)
-        elif model_type == 'nn':
-            yhat, model_ = build_nn(X_train_std, y_train, X_test_std, y_test)
+    if model_type == 'ma':
+        ypred = build_ma(df, target, pred_window)
+        return ypred
 
-        print('Iteration ', k)
-        model_evaluation(yhat, y_test)
-        
-        ypred.append(yhat)
-        models.append(model_)
-        
-    return ypred, models
+    else:
+        ypred = []
+        models = []
+        for k in range(k_folds):
+            # split in train and test set
+            train_set, test_set = split_timeseries(df, train_start, k, method = split_method)
+
+            # get features and target
+            X_train, y_train = get_feature_target(train_set, features, target)
+            X_test, y_test = get_feature_target(test_set, features, target)
+
+            # standardize
+            X_train_std, X_test_std = standardize(X_train, X_test, cols_std)
+
+            if model_type == 'lr':
+                yhat, model_ = build_lr(X_train_std, y_train, X_test_std)
+            elif model_type == 'rf':
+                yhat, model_ = build_rf(X_train_std, y_train, X_test_std, random_search = True)
+            elif model_type == 'xgb':
+                yhat, model_ = build_xgb(X_train_std, y_train, X_test_std)
+            elif model_type == 'nn':
+                yhat, model_ = build_nn(X_train_std, y_train, X_test_std)
+
+            print('Iteration ', k)
+            model_evaluation(yhat, y_test)
+            
+            ypred.append(yhat)
+            models.append(model_)
+            
+        return ypred, models
 
 def model_evaluation(true, pred):
+    idx = np.where(true != 0) # avoid dividing by 0 in mape calculation
+    true2 = true[idx]
+    pred2 = pred[idx]
 
-    plt.plot(true, label = 'True')
-    plt.plot(pred, label = 'Predicted')
+    plt.plot(true2, label = 'True')
+    plt.plot(pred2, label = 'Predicted')
     plt.title('True data vs prediction')
     plt.legend()
     plt.show()
     
-    corr = np.corrcoef(true, pred)
+    corr = np.corrcoef(true2, pred)
     sns.heatmap(corr, annot=True)
     plt.title('Correlation true data - prediction')
     plt.show()
 
-    mae = metrics.mean_absolute_error(true, pred)
-    mse = metrics.mean_squared_error(true, pred)
+    mae = metrics.mean_absolute_error(true2, pred2)
+    mse = metrics.mean_squared_error(true2, pred2)
     rmse =  np.sqrt(mse)
-    mape = np.mean(np.abs((true - pred) / np.abs(true)))
+    mape = np.mean(np.abs((true2 - pred2) / np.abs(true2)))
     acc = (1 - mape)
 
     print('Mean Absolute Error (MAE):', mae)
@@ -172,3 +198,4 @@ def model_evaluation(true, pred):
     print('Accuracy:', round(100*acc, 2))
 
     return mae, mse, rmse, mape, acc
+# %%
