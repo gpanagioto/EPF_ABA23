@@ -1,1 +1,4 @@
 data/
+.ipynb_chckpoints/
+config.yaml
+__pycache__/
