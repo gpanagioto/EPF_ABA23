@@ -5,6 +5,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import os
+import pytz
+
+files_names = {
+               "imports":"Imports.csv",
+               "DE_LU":"DE_LU_Exports.csv",
+               "DK_1": "DK_1_Exports.csv",
+               "SE_4": "SE_4_Exports.csv",
+               "Day_Ahead_Prices":"Day_Ahead_Prices.csv",
+               "Load_And_Forecast":"Load_And_Forecast.csv",
+               "Wind_Solar_Forecast":"Wind_Solar_Forecast.csv"
+              }
 
 def FindFile(file_name, search_path):
     """Search for a file with a specific name in the given search path."""
@@ -16,14 +27,36 @@ def FindFile(file_name, search_path):
     # If the file was not found
     return None
 
-def Timestamp(col_name, tz_offset, df):
 
-    df['Timestamp'] = pd.to_datetime(df[col_name], format = '%Y %m %d %H:%M:%S',utc = True)
+class Merging():
 
-    df['Timestamp'] = (df['Timestamp'] + dt.timedelta(hours = tz_offset)).dt.tz_localize(None)
+    def __init__(self, path) -> None:
+        
+        self.search_path = sys.path[0]
 
-    df.drop([col_name], axis = 1, inplace = True) # drop the column
+    def Timestamp(self, file_name):
 
-    df.set_index('Timestamp', inplace = True) # set column 'Timestamp' as index
+        file = FindFile(file_name, self.search_path)
+        
+        df = pd.read_csv(file, index_col = 0)
+        df.index.rename('Timestamp', inplace=True)
+        df.rename(columns={'0': 'Electricity'})
 
-    return df
+        if df.columns[0] == 'Unnamed: 0' and '0' in df.columns:
+            df.drop('Unnamed: 0', axis=1, inplace=True)
+        try:
+            if file_name == "Day_Ahead_Prices.csv":
+                name = 'Electricity Price'
+            else:
+                name = 'Electricity Quantity'
+
+            df.rename(columns={'0':name}, inplace = True, errors="raise")
+            
+        except:
+            pass
+
+        df.index = pd.to_datetime(df.index, format = '%Y %m %d %H:%M:%S', utc = False)        
+        df.index = df.index.to_series().apply(lambda row: row.astimezone(pytz.timezone("Europe/Copenhagen")))   
+        df.index = df.index.to_series().apply(lambda row: row.replace(tzinfo=None))
+        
+        return df
