@@ -2,11 +2,13 @@ import pandas as pd
 import datetime as dt
 from datetime import datetime, timezone
 import numpy as np
-import matplotlib.pyplot as plt
 import sys
 import os
+import functools as ft
+import inspect
 
-def FindFile(file_name, search_path):
+
+def find_file(file_name: str, search_path: str) -> str: 
     """Search for a file with a specific name in the given search path."""
     for dir_path, _, file_list in os.walk(search_path):
         # Look for the file in the current directory
@@ -16,14 +18,64 @@ def FindFile(file_name, search_path):
     # If the file was not found
     return None
 
-def Timestamp(col_name, tz_offset, df):
+def get_variable_name(var):
+        """
+        Gets the name of var. Does it from the out most frame inner-wards.
+        :param var: variable to get name from.
+        :return: string
+        """
+        for fi in reversed(inspect.stack()):
+            names = [var_name for var_name, var_val in fi.frame.f_locals.items() if var_val is var]
+            if len(names) > 0:
+                return names[0]
 
-    df['Timestamp'] = pd.to_datetime(df[col_name], format = '%Y %m %d %H:%M:%S',utc = True)
+class DataMerging():
 
-    df['Timestamp'] = (df['Timestamp'] + dt.timedelta(hours = tz_offset)).dt.tz_localize(None)
+    def __init__(self, path: str) -> None:
+        
+        self.search_path = sys.path[0]
 
-    df.drop([col_name], axis = 1, inplace = True) # drop the column
+    def entsoe_timestamp(self, file_name: str) -> pd.DataFrame:
 
-    df.set_index('Timestamp', inplace = True) # set column 'Timestamp' as index
+        file = find_file(file_name, self.search_path)
+        
+        df = pd.read_csv(file, index_col = 0)
+        df.index.rename('Timestamp', inplace=True)
 
-    return df
+        if df.columns[0] == 'Unnamed: 0' and '0' in df.columns:
+            df.drop('Unnamed: 0', axis=1, inplace=True)
+
+        try:
+            if file_name == "Day_Ahead_Prices.csv":
+                name = file_name.split('.')[0]
+            else:
+                name = file_name.split('.')[0] + '_Volume'
+
+            df.rename(columns={'0':name}, inplace = True, errors="raise")
+            
+        except:
+            pass
+
+        df.index = pd.to_datetime(df.index, format = '%Y %m %d %H:%M:%S', utc = False)
+        df.index = df.index.to_series().apply(lambda row: (row - dt.timedelta(hours=1)) if str(row).split('+')[1]=='02:00' else row)        #df.index = df.index.to_series().apply(lambda row: row.astimezone(pytz.timezone("Europe/Copenhagen")))   
+        df.index = df.index.to_series().apply(lambda row: row.replace(tzinfo=None))
+        
+        
+
+        return df.groupby(pd.Grouper(freq='H')).sum().sort_index()
+
+    def yahoo_timestamp(self, file_name: str) -> pd.DataFrame:
+
+        file = find_file(file_name, self.search_path)
+
+        try:
+            df = pd.read_csv(file, index_col=0, header=0, usecols=['Date','Price'], parse_dates=['Date'], infer_datetime_format=True)
+            df.rename(columns={'Price': file_name.split('.')[0] + '_Price'}, inplace=True)
+
+        except:
+            df = pd.read_csv(file, index_col=0, header=0, usecols=['Date','Close'], parse_dates=['Date'], infer_datetime_format=True)
+            df.rename(columns={'Close': file_name.split('.')[0] + '_Price'}, inplace=True)
+
+        df.index.rename('Timestamp', inplace=True)
+
+        return df.sort_index()
