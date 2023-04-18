@@ -67,7 +67,7 @@ def main():
     print("\n --------- Start Scraping --------- \n")
 
     if data_type == 'imports':
-        data_save_path = Directory(save_path ,data_type, country)
+        data_save_path = Directory(save_path , data_type, country)
         data_retrieving.Imports(data_save_path)
 
     elif data_type == 'exports':
