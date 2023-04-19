@@ -18,7 +18,9 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # add year, quarter, month, day, date and hour columns
-def get_dt_info(df, dt_col, yr = False, qt = False, mo = False, day = False, date = False, w = False, h = False):
+def get_dt_info(df:pd.DataFrame(), dt_col:str,
+                yr:bool = False, qt:bool = False, mo:bool = False,
+                day:bool = False, date:bool = False, w:bool = False, h:bool = False) -> pd.DataFrame():
     if yr:
         df['Year'] = df[dt_col].dt.year
     if qt:
@@ -39,3 +41,18 @@ def get_dt_info(df, dt_col, yr = False, qt = False, mo = False, day = False, dat
         df['Hour'] = df[dt_col].dt.hour
         
     return df
+
+def add_business_days(df:pd.DataFrame(), country:str, inplace:bool = False) -> pd.DataFrame():
+    country_calendar = getattr(holidays, country)
+    custom_business_days = pd.tseries.offsets.CustomBusinessDay(calendar = country_calendar)
+    start = min(df['Date']) # generalitzar columna?
+    end = max(df['Date']) # generalitzar columna?
+    print('From', start, 'to', end)
+    business_days = pd.bdate_range(start, end, freq = custom_business_days)
+    if inplace:
+        df['Business'] = df['Date'].isin(business_days) # generalitzar columna?
+        return df
+    else:
+        df2 = df.copy()
+        df2['Business'] = df2['Date'].isin(business_days) # generalitzar columna?
+        return df2
