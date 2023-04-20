@@ -1,0 +1,5 @@
+numpy==1.24.2
+pandas==1.5.3
+PyYAML==6.0
+yfinance==0.2.18
+entsoe_py==0.5.9
