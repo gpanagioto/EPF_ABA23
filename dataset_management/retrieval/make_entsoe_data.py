@@ -10,7 +10,6 @@ import os
 
 # Get the absolute path to the project directory of the script
 project_dir = os.path.abspath(os.path.dirname('EPF_ABA23'))
-print(os.path.abspath(os.path.dirname(__file__)))
 print(project_dir)
 
 config_file = os.path.join(project_dir,'dataset_management','config.yaml')
