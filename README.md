@@ -24,7 +24,7 @@ The repository is structured as follows:
 It is also structured in the following way
     * Retrieval: The retrieval folder contains the code for retrieving data from NTSOE and Yahoo finance.
         * Entsoe
-        
+            
             --data_type DATA_TYPE           The type of data we want ["main", "imports", "exports"]
             
             --query QUERY                   The data query in case of main data: choices=["DayAheadPrices", "LoadAndForecast", "WindSolarForecast"]
@@ -38,7 +38,7 @@ It is also structured in the following way
             --end_date END_DATE             Data date to. Default: Today
             
             --save_path SAVE_PATH           The directory to store the data
-
+            
         Example: Create the data Day Ahead Prices:
 
         python make_entsoe_data.py --data_type 'main' --query 'DayAheadPrices'
