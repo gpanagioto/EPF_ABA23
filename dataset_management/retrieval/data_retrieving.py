@@ -13,11 +13,13 @@ def DataSave(data: pd.DataFrame, save_path: str, name: str) -> None:
     print(save_path)
 
 def Directory(save_path, data_type, country):
-     
+    
+    print(save_path)
     if not os.path.exists(save_path + '/' + data_type + '/' + country + '/' ):
         os.makedirs(save_path + '/' + data_type + '/' + country + '/' )
     data_save_path = save_path + '/' + data_type + '/' + country + '/' 
-
+    print(data_save_path)
+    
     return data_save_path
 
 class EntsoeDataRetrieval():

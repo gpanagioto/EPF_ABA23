@@ -1,7 +1,7 @@
 import pandas as pd
 import datetime as dt
 import numpy as np
-from data_code import EntsoeDataRetrieval, Directory
+from data_retrieving import EntsoeDataRetrieval, Directory
 import argparse
 from entsoe import EntsoePandasClient
 import time
@@ -9,10 +9,9 @@ import yaml
 import os
 
 # Get the absolute path to the project directory of the script
-project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-#print(project_dir)
+project_dir = os.path.abspath(os.path.join(os.path.dirname('EPF_ABA23'), '..'))
 
-with open(project_dir+"/config.yaml", "r") as f:
+with open(project_dir+"/dataset_management/config.yaml", "r") as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
 
 api_key = config["api_key"]
