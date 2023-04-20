@@ -20,12 +20,19 @@ Repository Structure
 
 The repository is structured as follows:
 
-* data/: This directory contains the historical electricity price data used in the project, in CSV or other relevant formats.
-* notebooks/: This directory contains Jupyter notebooks that document the various stages of the project, including data preprocessing, EDA, model training, evaluation, and interpretation.
-* models/: This directory contains the trained machine learning models in serialized format, ready for deployment.
-* reports/: This directory contains any reports, presentations, or visualizations generated as part of the project.
-* src/: This directory contains any source code, scripts, or utilities developed for the project, such as data preprocessing scripts, model training scripts, or deployment scripts.
-* README.md: This file, providing documentation about the project, including its objective, repository structure, and usage instructions.
+** dataset_management: This directory contains the historical electricity price data and the code for both their retrieval and merge. 
+It is also structured in the following way
+* data:
+* retrieval:
+* merging:
+* 
+
+** notebooks/: This directory contains Jupyter notebooks that document the various stages of the project, including data preprocessing, EDA, model training, evaluation, and interpretation.
+
+** models/: This directory contains the trained machine learning models in serialized format, ready for deployment.
+** reports/: This directory contains any reports, presentations, or visualizations generated as part of the project.
+** src/: This directory contains any source code, scripts, or utilities developed for the project, such as data preprocessing scripts, model training scripts, or deployment scripts.
+** README.md: This file, providing documentation about the project, including its objective, repository structure, and usage instructions.
 
 Dependencies
 
