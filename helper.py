@@ -13,7 +13,7 @@ import seaborn as sns
 import xgboost as xg
 
 #%%
-def read_our_data(file_name):
+def read_our_data(file_name:str) -> pd.DataFrame():
     file_dir = './data/'+file_name
     df = pd.read_csv(file_dir)
     cols_check = ['Timestamp', 'Date']
@@ -22,36 +22,39 @@ def read_our_data(file_name):
             df[col] = pd.to_datetime(df[col])
     return df
 
-def lag_df(df, col, lags):
+def lag_df(df:pd.DataFrame(), col:str, lags:list) -> pd.DataFrame():
     df_lagged = df.copy()
     for lag in lags:
         new_col = str(col) + '-lag' + str(lag)
-        df_lagged[new_col] = df[col].shift(lag)
+        df_lagged[new_col] = df_lagged[col].shift(lag)
     return df_lagged
 
-def split_timeseries(df, train_start, cnt, method, perc = 0.85): # train_start array of dates; formatted YYYY-mm-dd
+def split_timeseries(df:pd.DataFrame(), train_start:list, cnt:int, method:int, perc = 0.85) -> pd.DataFrame(): # train_start array of dates; formatted YYYY-mm-dd
     # method {0 - moving blocks, 1 - from the begging}
+    df.head()
     if 'Timestamp' in df.columns:
+        print(True)
         df.set_index('Timestamp', inplace = True)
 
     if cnt == len(train_start)-1:
-        end=df['Date'].max()
+        end=df['Date'].max() + dt.timedelta(hours = 23)
+
     else:
-        end = train_start[cnt +1] - dt.timedelta(days=1)
+        end = train_start[cnt +1] - dt.timedelta(hours = 1)
 
     if method == 0:
         start = train_start[cnt]
         delta=(end-start).days
-        train_end = start + pd.DateOffset(days=round(perc*delta,0))
-        test_start = train_end + pd.DateOffset(days=1)
+        train_end = start + pd.DateOffset(days=round(perc*delta,0), hours = 23)
+        test_start = train_end + pd.DateOffset(hours = 1)
 
     elif method == 1:
         start = train_start[0]
         delta=(end-start).days
-        train_end = end - pd.DateOffset(days=91)
-        test_start = train_end + pd.DateOffset(days=1)
+        train_end = end - pd.DateOffset(days = 91)
+        test_start = train_end + pd.DateOffset(hours = 1)
     
-
+    print(f'train {start} - {train_end}, test {test_start} - {end}')
     trainset = df.loc[start:train_end]
     testset = df.loc[test_start:end]
        
