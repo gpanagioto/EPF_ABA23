@@ -2,11 +2,12 @@ import yfinance as yf
 import time
 import argparse
 import datetime as dt
-from data_code import YahooDataRetrieval, Directory
+from data_retrieving import YahooDataRetrieval, Directory
 import pandas as pd
 import os
 
-project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+# Get the absolute path to the project directory of the script
+project_dir = os.path.abspath(os.path.join(os.path.dirname('EPF_ABA23'), '..'))
 
 #dates
 START_DATE = "2018-01-01"
