@@ -1,1 +1,4 @@
-data/
+dataset_management/data/
+.ipynb_checkpoints/
+config.yaml
+__pycache__/
