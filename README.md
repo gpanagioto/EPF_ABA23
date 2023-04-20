@@ -20,19 +20,60 @@ Repository Structure
 
 The repository is structured as follows:
 
-** dataset_management: This directory contains the historical electricity price data and the code for both their retrieval and merge. 
+* dataset_management: This directory contains the historical electricity price data and the code for both their retrieval and merge. 
 It is also structured in the following way
-* data:
-* retrieval:
-* merging:
-* 
+    * Retrieval: The retrieval folder contains the code for retrieving data from NTSOE and Yahoo finance.
+        * Entsoe
+        
+            --data_type DATA_TYPE           The type of data we want ["main", "imports", "exports"]
+            
+            --query QUERY                   The data query in case of main data: choices=["DayAheadPrices", "LoadAndForecast", "WindSolarForecast"]
+            
+            --country_code COUNTRY_CODE     The country we want the data for. Default: 'DK_2'
+            
+            --country_to COUNTRY_TO         The country the exports go to and applies only to 'exports': choices "DE_LU"/"DK_1"/"SE_4"/"DE_LU_AT"
+            
+            --start_date START_DATE         Data date from. Default: '20171224'
+            
+            --end_date END_DATE             Data date to. Default: Today
+            
+            --save_path SAVE_PATH           The directory to store the data
 
-** notebooks/: This directory contains Jupyter notebooks that document the various stages of the project, including data preprocessing, EDA, model training, evaluation, and interpretation.
+        Example: Create the data Day Ahead Prices:
 
-** models/: This directory contains the trained machine learning models in serialized format, ready for deployment.
-** reports/: This directory contains any reports, presentations, or visualizations generated as part of the project.
-** src/: This directory contains any source code, scripts, or utilities developed for the project, such as data preprocessing scripts, model training scripts, or deployment scripts.
-** README.md: This file, providing documentation about the project, including its objective, repository structure, and usage instructions.
+        python make_entsoe_data.py --data_type 'main' --query 'DayAheadPrices'
+
+        * Yahoo
+    
+            --ticker TICKER             The ticker we want the data for [ "TTF=F : Dutch TTF Natural Gas Calendar", "" :, "" : ]
+            
+            --start_date START_DATE     Data date from. Default: '20171224'
+            
+            --end_date END_DATE         Data date to. Default: Today
+            
+            --save_path SAVE_PATH       The directory to store the data
+
+        Example: Create the data for Dutch TTF Natural Gas Calendar:
+
+        python make_yahoo_data.py --ticker 'TTF=F'
+
+        For CO2 prices and Coal prices it doesn't work as the yahoo finance doesn't have data.
+
+    * Merging:  The merging folder contains the code for merging the retrieved data.
+
+        python merging_data.py   
+
+    * Cleaning: The cleaning folder the code for cleaning the merged data. 
+    * Data: The data folder contains the raw data produced by the code in the retrieval folder, the merged data from merging and also the clean data.
+
+ 
+
+* notebooks/: This directory contains Jupyter notebooks that document the various stages of the project, including data preprocessing, EDA, model training, evaluation, and interpretation.
+
+* models/: This directory contains the trained machine learning models in serialized format, ready for deployment.
+* reports/: This directory contains any reports, presentations, or visualizations generated as part of the project.
+* src/: This directory contains any source code, scripts, or utilities developed for the project, such as data preprocessing scripts, model training scripts, or deployment scripts.
+* README.md: This file, providing documentation about the project, including its objective, repository structure, and usage instructions.
 
 Dependencies
 
