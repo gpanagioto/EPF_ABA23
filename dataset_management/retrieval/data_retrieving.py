@@ -10,7 +10,7 @@ def DataSave(data: pd.DataFrame, save_path: str, name: str) -> None:
     
     data.to_csv(save_path + name + '.csv')
     print(f"Size of {name} is {data.shape[0]} rows.\n")
-    print(save_path)
+   # print(save_path)
 
 def Directory(save_path, data_type, country):
     
@@ -18,7 +18,7 @@ def Directory(save_path, data_type, country):
     if not os.path.exists(save_path + '/' + data_type + '/' + country + '/' ):
         os.makedirs(save_path + '/' + data_type + '/' + country + '/' )
     data_save_path = save_path + '/' + data_type + '/' + country + '/' 
-    print(data_save_path)
+    #print(data_save_path)
     
     return data_save_path
 

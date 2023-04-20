@@ -27,7 +27,7 @@ COUNTRY_CODE = 'DK_2' # Denmark (Copenhagen)
 
 # the path where the data will be saved
 SAVE_PATH = project_dir+"/dataset_management/data/raw/entsoe"
-print(SAVE_PATH)
+#print(SAVE_PATH)
 
 def get_arguments():
     parser = argparse.ArgumentParser(description='retrieving data from Entsoe \
