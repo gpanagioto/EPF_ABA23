@@ -7,14 +7,18 @@ import pandas as pd
 import os
 
 # Get the absolute path to the project directory of the script
-project_dir = os.path.abspath(os.path.join(os.path.dirname('EPF_ABA23'), '..'))
+project_dir = os.path.abspath(os.path.dirname('EPF_ABA23'))
+print(project_dir)
+
+#config_file = os.path.join(project_dir,'dataset_management','config.yaml')
+#print(config_file)
 
 #dates
 START_DATE = "2018-01-01"
 END_DATE = dt.datetime.now().date().strftime("%Y-%m-%d")
 
 # the path where the data will be saved
-SAVE_PATH = project_dir+"/dataset_management/data/raw/"
+SAVE_PATH = os.path.join(project_dir,"dataset_management","data","raw")
 
 def get_arguments():
     parser = argparse.ArgumentParser(description='retrieving data from Yahoo API \

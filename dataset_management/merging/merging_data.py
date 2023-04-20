@@ -5,10 +5,10 @@ import os
 
 # Get the absolute path to the project directory of the script
 project_dir = os.path.abspath(os.path.dirname('EPF_ABA23'))
-print(project_dir)
+#print(project_dir)
 
 config_file = os.path.join(project_dir,'dataset_management','config.yaml')
-print(config_file)
+#print(config_file)
 
 with open(config_file, "r") as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
