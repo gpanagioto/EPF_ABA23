@@ -4,7 +4,8 @@ import yaml
 import os
 
 # Get the absolute path to the project directory of the script
-project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+project_dir = os.path.abspath(os.path.join(os.path.dirname('EPF_ABA23'), '..'))
+print(project_dir)
 
 with open(project_dir+"/config.yaml", "r") as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
@@ -13,7 +14,7 @@ files = config["files_names"]
 
 search_path = find_folder('raw', project_dir)
 save_path = find_folder('data', project_dir)
-
+print(save_path)
 def main(search_path: str, save_path: str, files: dict):
 
     merging = DataMerging(search_path)
