@@ -9,9 +9,14 @@ import yaml
 import os
 
 # Get the absolute path to the project directory of the script
-project_dir = os.path.abspath(os.path.join(os.path.dirname('EPF_ABA23'), '..'))
+project_dir = os.path.abspath(os.path.dirname('EPF_ABA23'))
+print(os.path.abspath(os.path.dirname(__file__)))
+print(project_dir)
 
-with open(project_dir+"/config.yaml", "r") as f:
+config_file = os.path.join(project_dir,'dataset_management','config.yaml')
+print(config_file)
+
+with open(config_file, "r") as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
 
 api_key = config["api_key"]
