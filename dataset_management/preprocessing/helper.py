@@ -20,24 +20,26 @@ warnings.filterwarnings('ignore')
 # add year, quarter, month, day, date and hour columns
 def get_dt_info(df:pd.DataFrame(), dt_col:str,
                 yr:bool = False, qt:bool = False, mo:bool = False,
-                day:bool = False, date:bool = False, w:bool = False, h:bool = False) -> pd.DataFrame():
-    if yr:
+                w:bool = False, date:bool = False, day:bool = False, wd:bool = False, h:bool = False) -> pd.DataFrame():
+    if yr: # year
         df['Year'] = df[dt_col].dt.year
-    if qt:
+    if qt: # quarter
         df['Quarter'] = df[dt_col].dt.quarter
-    if mo:
+    if mo: # month
         df['Month'] = df[dt_col].dt.month
-    if day:
-        df['Day'] = df[dt_col].dt.day
-    if date:
-        df['Date'] = df[dt_col].dt.date
-        df['Date'] = pd.to_datetime(df['Date'], format = '%Y %m %d')
-    if w:
+    if w: # week of the year
         if df[dt_col].dtype == '<M8[ns]':
             df['Week'] = df[dt_col].dt.isocalendar().week
         else:
-            print(dt_col,'is not a date!')
-    if h:
+            print(dt_col,'is not formatted as a date!')
+    if date: # day YYYY-mm-dd
+        df['Date'] = df[dt_col].dt.date
+        df['Date'] = pd.to_datetime(df['Date'], format = '%Y %m %d')
+    if day: # day in the month
+        df['Day'] = df[dt_col].dt.day
+    if wd: # weekday, 0-Mo 6-Su
+        df['Weekday'] = df[dt_col].dt.day_of_week
+    if h: # hour of the day
         df['Hour'] = df[dt_col].dt.hour
         
     return df
