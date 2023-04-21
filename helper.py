@@ -13,22 +13,22 @@ import seaborn as sns
 import xgboost as xg
 
 #%%
-def read_our_data(file_name:str) -> pd.DataFrame():
-    file_dir = './data/'+file_name
-    df = pd.read_csv(file_dir)
-    cols_check = ['Timestamp', 'Date']
-    for col in cols_check:
-        if col in df.columns:
-            df[col] = pd.to_datetime(df[col])
-    return df
+# def read_our_data(file_name:str) -> pd.DataFrame():
+#     file_dir = './data/'+file_name
+#     df = pd.read_csv(file_dir)
+#     cols_check = ['Timestamp', 'Date']
+#     for col in cols_check:
+#         if col in df.columns:
+#             df[col] = pd.to_datetime(df[col])
+#     return df
 
-def lag_df(df:pd.DataFrame(), col:str, lags:list) -> pd.DataFrame():
-    df_lagged = df.copy()
-    for lag in lags:
-        new_col = str(col) + '-lag' + str(lag)
-        df_lagged[new_col] = df_lagged[col].shift(lag)
+# def lag_df(df:pd.DataFrame(), col:str, lags:list) -> pd.DataFrame():
+#     df_lagged = df.copy()
+#     for lag in lags:
+#         new_col = str(col) + '-lag' + str(lag)
+#         df_lagged[new_col] = df_lagged[col].shift(lag)
     
-    return df_lagged
+#     return df_lagged
 
 
 def drop_lag_df(df:pd.DataFrame(), new_col:str, lags:list) -> pd.DataFrame():
