@@ -15,5 +15,6 @@ files_names : {
                         TTF  : TTF=F.csv,
                         COAL : CFI2Z3.csv,
                         CO2  : CO2_prices.csv
-                        }
+                        },
+                energy_data : EM- 
               }
