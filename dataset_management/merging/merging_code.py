@@ -3,7 +3,7 @@ import datetime as dt
 import os
 import functools as ft
 import inspect
-
+import datetime as datetime
 
 def find_file(file_name: str, search_path: str) -> str: 
     """Search for a file with a specific name in the given search path."""
@@ -84,3 +84,19 @@ class DataMerging():
         
 
         return df.sort_index()
+    
+    def energy_data_timestamp(self, file_name: str) -> pd.DataFrame:
+
+        file = find_file(file_name, self.search_path)
+
+        try:
+            df = pd.read_csv(file, usecols=['MTU','Biomass  - Actual Aggregated [MW]', 'Waste  - Actual Aggregated [MW]'])
+            df['Timestamp_cet'] = df['MTU'].apply(lambda row: row.split('-')[0])
+            df['Timestamp'] = df['Timestamp_cet'].apply(lambda row: datetime.datetime.strptime(row, '%d.%m.%Y %H:%M '))
+            df.drop(['Timestamp_cet','MTU'], inplace=True, axis=1)
+            df.set_index('Timestamp', inplace=True)
+        except:
+            pass
+
+        return df.sort_index()
+
