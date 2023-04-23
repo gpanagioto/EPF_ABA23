@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import math
 
 from sklearn import metrics
 from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
@@ -9,6 +10,10 @@ from sklearn.linear_model import LinearRegression
 from sklearn.neural_network import MLPRegressor 
 import datetime as dt
 import seaborn as sns
+
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.layers import LSTM
 
 import xgboost as xg
 
@@ -95,9 +100,9 @@ def standardize(train_set, test_set, cols):
 
 #%%
 def build_lr(x_train, y_train, x_test): # CONSIDER USING STATSTOOLS.OLS AS IT PROVIDES TTEST
-    lr = LinearRegression()
-    lr.fit(x_train, y_train)
-    model_ = lr
+    model_ = LinearRegression()
+    model_.fit(x_train, y_train)
+
     ypred = model_.predict(x_test)
     params = model_.get_params()
 
@@ -122,13 +127,12 @@ def build_rf(x_train, y_train, x_test, random_search = False):
         rf_grid = {'max_depth': [3, 7, 10],
                    'min_samples_split': np.arange(2, 30, 2),
                    'min_samples_leaf': np.arange(2, 15, 2)}
-        rf = RandomizedSearchCV(estimator = rf, param_distributions = rf_grid, n_iter = 30, cv = 3, random_state = 42, n_jobs = -1)
-        rf.fit(x_train, y_train)
-        rf.best_estimator_.get_params() # optimal parameters
-        model_ = rf.best_estimator_ # evaluate optimal model
+        model_ = RandomizedSearchCV(estimator = rf, param_distributions = rf_grid, n_iter = 30, cv = 3, random_state = 42, n_jobs = -1)
+        model_.fit(x_train, y_train)
+        model_.best_estimator_.get_params() # optimal parameters
+        model_ = model_.best_estimator_ # evaluate optimal model
     else:
-        rf.fit(x_train, y_train)
-        model_ = rf
+        model_.fit(x_train, y_train)
         
     ypred = model_.predict(x_test)
     params = model_.get_params()
@@ -136,26 +140,31 @@ def build_rf(x_train, y_train, x_test, random_search = False):
     return ypred, params
 
 def build_xgb(x_train, y_train, x_test):
-    xgb = xg.XGBRegressor(seed = 42)
-    xgb.fit(x_train, y_train)
-    
-    model_= xgb
+    model_ = xg.XGBRegressor(seed = 42)
+    model_.fit(x_train, y_train)
+
     ypred = model_.predict(x_test)
 
     return ypred, model_
 
 def build_gb(x_train, y_train, x_test):
-    gb = GradientBoostingRegressor(seed = 42)
-    gb.fit(x_train, y_train)
+    model_ = GradientBoostingRegressor(seed = 42)
+    model_.fit(x_train, y_train)
     
-    model_= gb
     ypred = model_.predict(x_test)
 
     return ypred, model_
 
-def build_lstm (x_train, y_train, x_test, y_test):
+def build_lstm (x_train, y_train, x_test):
 
-    model_ = nn
+    # create and fit the LSTM network
+    model_ = Sequential()
+    model_.add(LSTM(4, input_shape=(1, look_back)))
+    model_.add(Dense(1))
+    model_.compile(loss='mean_squared_error', optimizer='adam')
+    history=model_.fit(x_train, y_train, epochs=10, batch_size=1, verbose=2)
+
+    # trainPredict = model_.predict(x_train)
     ypred = model_.predict(x_test)
     return ypred, model_
 
