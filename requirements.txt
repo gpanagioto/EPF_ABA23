@@ -8,4 +8,4 @@ scikit_learn==1.2.1
 seaborn==0.12.2
 yfinance==0.2.18
 dvc
-"dvc[gdrive]"
+dvc[gdrive]
