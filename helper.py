@@ -145,15 +145,15 @@ def build_xgb(x_train, y_train, x_test):
     return ypred, model_
 
 def build_gb(x_train, y_train, x_test):
-    gb = GradientBoostingRegressor(seed = 42)
-    gb.fit(x_train, y_train)
+    xgb = GradientBoostingRegressor(seed = 42)
+    xgb.fit(x_train, y_train)
     
-    model_= gb
+    model_= xgb
     ypred = model_.predict(x_test)
 
     return ypred, model_
 
-def build_lstm (x_train, y_train, x_test, y_test):
+def nn (x_train, y_train, x_test, y_test):
 
     model_ = nn
     ypred = model_.predict(x_test)
@@ -189,10 +189,8 @@ def run_model(model_type, df, k_folds, split_method, train_start, features, targ
                 yhat, model_ = build_rf(X_train_std, y_train, X_test_std, random_search = True)
             elif model_type == 'xgb':
                 yhat, model_ = build_xgb(X_train_std, y_train, X_test_std)
-            elif model_type == 'gb0':
-                yhat, model = build_gb(X_train_std, y_train, X_test_std)
-            elif model_type == 'lstm':
-                yhat, model_ = build_lstm(X_train_std, y_train, X_test_std)
+            elif model_type == 'nn':
+                yhat, model_ = build_nn(X_train_std, y_train, X_test_std)
 
             print('Iteration ', k)
             model_evaluation(yhat, y_test)
@@ -234,7 +232,7 @@ def model_evaluation(true, pred):
     return mae, mse, rmse, mape, acc
 # %%
 def load_data(m_data):
-    m_data=m_data[['Timestamp','Day_Ahead_Prices', 'Actual Load', 'DK_1', 'SE_4', 'DK_1_Exports_Volume','SE_4_Exports_Volume', 'DE_LU_corr', 'DE_LU_Exports_Volume_corr', 'Solar','Wind Total',"CO2_prices_Price","TTF=F_Price","CFI2Z3_Price","Hour","Weekday","business"]]
+    m_data=m_data[['Timestamp','Day_Ahead_price', 'DK_1_imports', 'SE_4_imports', 'DK_1_exports','SE_4_exports', 'Actual_Load','Solar_[MW]', 'ttf_price', 'coal_price', 'co2_price','DE_LU_AT_imports', 'DE_LU_AT_exports', 'Wind Total',"Hour","Weekday","business"]]
     #m_data=m_data[['Timestamp','Day-ahead prices', 'Actual Load', 'Solar','Wind Total',"TTF","CO2","Hour","Day","business"]]
     return m_data
     
@@ -247,7 +245,7 @@ def create_time(data,days):
     return dl
 
 def lagging(f1):
-    cols=[ 'Actual Load', 'DK_1', 'SE_4', 'DK_1_Exports_Volume','SE_4_Exports_Volume', 'DE_LU_corr', 'DE_LU_Exports_Volume_corr', 'Solar','Wind Total']
+    cols=['DK_1_imports', 'SE_4_imports', 'DK_1_exports','SE_4_exports', 'Actual_Load','Solar_[MW]', 'DE_LU_AT_imports', 'DE_LU_AT_exports', 'Wind Total']
     for i in cols:
         f1[i+"_mean4"]=f1[i].shift(1, axis = 0).rolling(4,min_periods=1).mean().round(2)
         f1=f1.drop(i,axis=1)
@@ -272,7 +270,7 @@ def split(datam):
             else:
                 df0=df0.append(dn[j][i], ignore_index=True)
     df0=df0.sort_values("Timestamp").reset_index(drop=True)
-    cols=["CO2_prices_Price","TTF=F_Price","CFI2Z3_Price"]
+    cols=["co2_price","ttf_price","coal_price"]
     for i in cols:
         df0[i]=df0[i].fillna(method='pad')
     out_data=df0
