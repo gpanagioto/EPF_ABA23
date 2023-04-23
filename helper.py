@@ -145,15 +145,15 @@ def build_xgb(x_train, y_train, x_test):
     return ypred, model_
 
 def build_gb(x_train, y_train, x_test):
-    xgb = GradientBoostingRegressor(seed = 42)
-    xgb.fit(x_train, y_train)
+    gb = GradientBoostingRegressor(seed = 42)
+    gb.fit(x_train, y_train)
     
-    model_= xgb
+    model_= gb
     ypred = model_.predict(x_test)
 
     return ypred, model_
 
-def nn (x_train, y_train, x_test, y_test):
+def build_lstm (x_train, y_train, x_test, y_test):
 
     model_ = nn
     ypred = model_.predict(x_test)
@@ -189,8 +189,10 @@ def run_model(model_type, df, k_folds, split_method, train_start, features, targ
                 yhat, model_ = build_rf(X_train_std, y_train, X_test_std, random_search = True)
             elif model_type == 'xgb':
                 yhat, model_ = build_xgb(X_train_std, y_train, X_test_std)
-            elif model_type == 'nn':
-                yhat, model_ = build_nn(X_train_std, y_train, X_test_std)
+            elif model_type == 'gb0':
+                yhat, model = build_gb(X_train_std, y_train, X_test_std)
+            elif model_type == 'lstm':
+                yhat, model_ = build_lstm(X_train_std, y_train, X_test_std)
 
             print('Iteration ', k)
             model_evaluation(yhat, y_test)
