@@ -108,9 +108,10 @@ def split_data(df,show=False):
         plt.legend()
     return train_data,test_data
 
-def fit_arima_fun(timeseries,max_p,max_q,seasonal,print_summary=False):
+def fit_arima_fun(timeseries,max_p,max_q,seasonal,print_summary=False,exogenous=None):
     model_autoARIMA = auto_arima(timeseries, start_p=0, start_q=0,
     test='adf',       # use adftest to find optimal 'd'
+    exogenous=exogenous,
     max_p=max_p, max_q=max_q, # maximum p and q
     m=1,              # frequency of series
     d=None,           # let model determine 'd'
@@ -125,35 +126,35 @@ def fit_arima_fun(timeseries,max_p,max_q,seasonal,print_summary=False):
         print(model_autoARIMA.summary())
     return model_autoARIMA 
 
-def fit_arima_(df_energy1,column,hourly):
+def fit_arima_(df_energy1,column,hourly,season=False):
     order_p=[]
     order_q=[]
     predictions=[]
     if hourly==True:
-        for i in range(24):
+        for i in range(1):
             cnt=i
             train_data, test_data=split_data(df_energy1[df_energy1.Hour==cnt][column])
             #acf_plot(df_energy_index['Day-ahead prices'],200)
             #slow train 
-            best_mod = fit_arima_fun(train_data,1,1,False)
+            best_mod = fit_arima_fun(train_data,8,8,seasonal=season)
             p,d,q=best_mod.order
             order_p.append(p)
             order_q.append(q)
-            predicted_mu = best_mod.predict(n_periods=7)
-            plotting(test_data[:7], predicted_mu, 0, train_data)
+            predicted_mu = best_mod.forecast(7, alpha = 0.05)
+            plotting(test_data[:7].reset_index(), predicted_mu, 0, train_data)
             predictions.append(predicted_mu)
     if hourly== False:
         train_data, test_data=split_data(df_energy1[column])
         #acf_plot(df_energy_index['Day-ahead prices'],200)
         #slow train 
-        best_mod = fit_arima_fun(train_data,1,1,False)
+        best_mod = fit_arima_fun(train_data,8,8,False)
         p,d,q=best_mod.order
         order_p.append(p)
         order_q.append(q)
-        predicted_mu = best_mod.predict(n_periods=24)
+        predicted_mu = best_mod.forecast(24, alpha = 0.05)
         plotting(test_data[:24], predicted_mu, 0, train_data)
         predictions.append(predicted_mu)
-    return order_p,order_q,predictions
+    return order_p,order_q,predictions,test_data
 
 def acf_plot(timeseries,lag):
     plt.rc("figure", figsize=(20, 8))
