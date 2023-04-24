@@ -57,6 +57,10 @@ It is also structured in the following way
 
             python make_yahoo_data.py --ticker 'TTF=F'
 
+      * Energy data
+
+        The data has been collected from Electricity Map site without api as it doesn't work for them.
+       
         **NOTE_1**: <u>For CO2 prices and Coal prices it doesn't work as the yahoo finance doesn't have data</u>.
 
         **NOTE_2**: <u>Always running from root folder of the folder EPF_ABA23</u> 
@@ -65,17 +69,15 @@ It is also structured in the following way
 
             python merging_data.py   
 
-    * Cleaning: The cleaning folder the code for cleaning the merged data. 
+    * Cleaning: The cleaning folder contains the code for cleaning the merged data. 
     
     * Data: The data folder contains the raw data produced by the code in the retrieval folder, the merged data from merging and also the clean data.
 
  
-
 * notebooks/: This directory contains Jupyter notebooks that document the various stages of the project, including data preprocessing, EDA, model training, evaluation, and interpretation.
 
 * models/: This directory contains the trained machine learning models in serialized format, ready for deployment.
 * reports/: This directory contains any reports, presentations, or visualizations generated as part of the project.
-* src/: This directory contains any source code, scripts, or utilities developed for the project, such as data preprocessing scripts, model training scripts, or deployment scripts.
 * README.md: This file, providing documentation about the project, including its objective, repository structure, and usage instructions.
 
 Dependencies
