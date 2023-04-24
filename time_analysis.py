@@ -236,4 +236,12 @@ def req():
     f=client.query_generation_per_plant(COUNTRY_CODE, start=start,end=end)
 
 
-#rename column in pandas
+
+def create_quarterly_data(df):
+    r=df.Day_Ahead_price.copy()
+    r.index=df.Timestamp
+    r=r[~r.index.duplicated(keep='first')]
+    r=r.resample('15Min')
+    r=r.interpolate(method='pad')
+    #r.to_csv('dataset_management\data\clean\clean_quarterly.csv',index=False)
+    return r
