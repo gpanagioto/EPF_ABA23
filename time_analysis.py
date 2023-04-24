@@ -108,14 +108,17 @@ def split_data(df,show=False):
         plt.legend()
     return train_data,test_data
 
-def fit_arima_fun(timeseries,max_p,max_q,seasonal,print_summary=False,exogenous=None):
-    model_autoARIMA = auto_arima(timeseries, start_p=0, start_q=0,
+def fit_moving_average(timeseries, lags):
+    return list([np.average(timeseries.iloc[max(i-lags,0):i-1]) for i in range(1,len(timeseries)+1)])
+
+def fit_arima_fun(timeseries,max_p,max_d,max_q,season,print_summary=False,exog=None):
+    model_autoARIMA = auto_arima(timeseries, exog, start_p=0, start_q=0,
     test='adf',       # use adftest to find optimal 'd'
-    exogenous=exogenous,
     max_p=max_p, max_q=max_q, # maximum p and q
+    max_d=max_d,
     m=1,              # frequency of series
     d=None,           # let model determine 'd'
-    seasonal=seasonal,   # No Seasonality
+    seasonal=season,   # No Seasonality
     start_P=0, 
     D=0, 
     trace=True,
@@ -126,33 +129,35 @@ def fit_arima_fun(timeseries,max_p,max_q,seasonal,print_summary=False,exogenous=
         print(model_autoARIMA.summary())
     return model_autoARIMA 
 
-def fit_arima_(df_energy1,column,hourly,season=False):
+def fit_arima_(df_energy1,column,max_p,max_d,max_q,hourly,season=False,exog=None,print_summary=True):
     order_p=[]
     order_q=[]
     predictions=[]
     if hourly==True:
-        for i in range(1):
+        for i in range(24):
             cnt=i
             train_data, test_data=split_data(df_energy1[df_energy1.Hour==cnt][column])
             #acf_plot(df_energy_index['Day-ahead prices'],200)
             #slow train 
-            best_mod = fit_arima_fun(train_data,8,8,seasonal=season)
+            print(i)
+            best_mod = fit_arima_fun(train_data,max_p,max_d,max_q,seasonal=season,exog=exog,print_summary=True)
             p,d,q=best_mod.order
             order_p.append(p)
             order_q.append(q)
-            predicted_mu = best_mod.forecast(7, alpha = 0.05)
-            plotting(test_data[:7].reset_index(), predicted_mu, 0, train_data)
+            predicted_mu = best_mod.predict(n_periods=7)
+            #plotting(test_data[:7].reset_index(), predicted_mu, 0, train_data)
             predictions.append(predicted_mu)
+        
     if hourly== False:
         train_data, test_data=split_data(df_energy1[column])
         #acf_plot(df_energy_index['Day-ahead prices'],200)
         #slow train 
-        best_mod = fit_arima_fun(train_data,8,8,False)
+        best_mod = fit_arima_fun(train_data,max_p,max_d,max_q,seasonal=season,exog=exog,print_summary=True)
         p,d,q=best_mod.order
         order_p.append(p)
         order_q.append(q)
-        predicted_mu = best_mod.forecast(24, alpha = 0.05)
-        plotting(test_data[:24], predicted_mu, 0, train_data)
+        predicted_mu = best_mod.predict(n_periods=24)
+        #plotting(test_data[:24], predicted_mu, 0, train_data)
         predictions.append(predicted_mu)
     return order_p,order_q,predictions,test_data
 
@@ -204,7 +209,7 @@ def testnormal(data):
 
 
 def kpss_test(y):
-    kpss_test = kpss(y, regression='c', lags='legacy')
+    kpss_test = kpss(y, regression='ct')
     print('KPSS Statistic: {:.6f}\np-value: {:.6f}\n#Lags used: {}'
         .format(kpss_test[0], kpss_test[1], kpss_test[2]))
     for key, value in kpss_test[3].items():
