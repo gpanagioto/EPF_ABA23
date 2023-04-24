@@ -1,0 +1,17 @@
+arch
+chart_studio
+keras
+lightgbm
+matplotlib
+numpy
+pandas
+pandas_profiling
+pmdarima
+PyYAML
+scikit_learn
+scipy
+seaborn
+statsmodels
+tensorflow
+xgboost
+yfinance

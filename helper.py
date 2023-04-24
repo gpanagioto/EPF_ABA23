@@ -5,15 +5,16 @@ import math
 
 from sklearn import metrics
 from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
-from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
+from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit, train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.neural_network import MLPRegressor 
+
 import datetime as dt
 import seaborn as sns
 
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.layers import LSTM
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
 
 import xgboost as xg
 
@@ -46,12 +47,10 @@ def drop_lag_df(df:pd.DataFrame(), new_col:str, lags:list) -> pd.DataFrame():
     return df_lagged
 
 
-
-def split_timeseries(df:pd.DataFrame(), train_start:list, cnt:int, method:int, perc = 0.85) -> pd.DataFrame(): # train_start array of dates; formatted YYYY-mm-dd
+def split_timeseries(df:pd.DataFrame(), train_start:list, cnt:int, method:int, perc = 0.85) -> pd.DataFrame(): # train_start list of dates; formatted YYYY-mm-dd
     # method {0 - moving blocks, 1 - from the begging}
     df.head()
     if 'Timestamp' in df.columns:
-        print(True)
         df.set_index('Timestamp', inplace = True)
 
     if cnt == len(train_start)-1:
@@ -69,7 +68,7 @@ def split_timeseries(df:pd.DataFrame(), train_start:list, cnt:int, method:int, p
     elif method == 1:
         start = train_start[0]
         delta=(end-start).days
-        train_end = end - pd.DateOffset(days = 91)
+        train_end = end - pd.DateOffset(days = 30)
         test_start = train_end + pd.DateOffset(hours = 1)
     
     print(f'train {start} - {train_end}, test {test_start} - {end}')
@@ -148,79 +147,86 @@ def build_xgb(x_train, y_train, x_test):
     return ypred, model_
 
 def build_gb(x_train, y_train, x_test):
-    model_ = GradientBoostingRegressor(seed = 42)
+    model_ = GradientBoostingRegressor(random_state = 42)
     model_.fit(x_train, y_train)
     
     ypred = model_.predict(x_test)
 
     return ypred, model_
 
-def build_lstm (x_train, y_train, x_test):
+def build_lstm (x_dev, y_dev, x_test):
+
+    tf.random.set_seed(42)
+
+    x_train, x_val = train_test_split(x_dev,test_size = 0.2, shuffle=False)
+    y_train, y_val = train_test_split(y_dev,test_size = 0.2, shuffle=False)
 
     # create and fit the LSTM network
-    model_ = Sequential()
-    model_.add(LSTM(4, input_shape=(1, look_back)))
-    model_.add(Dense(1))
+    model_ = keras.models.Sequential()
+    model_.add(layers.LSTM(64, input_shape = (x_train.shape[1], 1)))
+    model_.add(layers.Dense(1))
     model_.compile(loss='mean_squared_error', optimizer='adam')
-    history=model_.fit(x_train, y_train, epochs=10, batch_size=1, verbose=2)
+    # change data type so it can be converted to a tensor
+    x_train = np.asarray(x_train).astype(np.float32)
+    x_val = np.asarray(x_val).astype(np.float32)
+    x_test = np.asarray(x_test).astype(np.float32)
+    model_.fit(x_train, y_train, epochs = 10, batch_size = 32, validation_data = (x_val, y_val))
 
-    # trainPredict = model_.predict(x_train)
     ypred = model_.predict(x_test)
+    print(ypred.shape)
+
     return ypred, model_
 
-def run_model(model_type, df, k_folds, split_method, train_start, features, target, cols_std, std=True, pred_window = []): # argument timeframe is necessary to choose baseline
-    # model_type: lr (linear regression), ma (moving average), rf (random forest), xgb (XGBoost), nn (neural network)
+def run_model(model_type, df, k_folds, split_method, train_start, features, target, cols_std, X_std = True): # argument timeframe is necessary to choose baseline
+    # model_type: lr (linear regression), rf (random forest), xgb (XGBoost), lstm (long-short term memory - recursive neural network)
 
-    if model_type == 'ma':
-        ypred = build_ma(df, target, pred_window)
-        return ypred
+    ypred = []
+    models = []
 
-    else:
-        ypred = []
-        models = []
-        for k in range(k_folds):
-            # split in train and test set
-            train_set, test_set = split_timeseries(df, train_start, k, method = split_method)
+    for k in range(k_folds):
+        print('Iteration ', k)
 
-            # get features and target
-            X_train, y_train = get_feature_target(train_set, features, target)
-            X_test, y_test = get_feature_target(test_set, features, target)
+        # split in train and test set
+        train_set, test_set = split_timeseries(df, train_start, k, method = split_method)
 
-            # standardize
-            if std==True:
-                X_train_std, X_test_std = standardize(X_train, X_test, cols_std)
-            else:
-                X_train_std, X_test_std = X_train, X_test
+        # get features and target
+        X_train, y_train = get_feature_target(train_set, features, target)
+        X_test, y_test = get_feature_target(test_set, features, target)
 
-            if model_type == 'lr':
-                yhat, model_ = build_lr(X_train_std, y_train, X_test_std)
-            elif model_type == 'rf':
-                yhat, model_ = build_rf(X_train_std, y_train, X_test_std, random_search = True)
-            elif model_type == 'xgb':
-                yhat, model_ = build_xgb(X_train_std, y_train, X_test_std)
-            elif model_type == 'nn':
-                yhat, model_ = build_nn(X_train_std, y_train, X_test_std)
+        # standardize
+        if X_std == True:
+            X_train, X_test = standardize(X_train, X_test, cols_std)
 
-            print('Iteration ', k)
-            model_evaluation(yhat, y_test)
+        if model_type == 'lr':
+            yhat, model_ = build_lr(X_train, y_train, X_test)
+        elif model_type == 'rf':
+            yhat, model_ = build_rf(X_train, y_train, X_test, random_search = True)
+        elif model_type == 'xgb':
+            yhat, model_ = build_xgb(X_train, y_train, X_test)
+        elif model_type == 'gb':
+            yhat, model_ = build_gb(X_train, y_train, X_test)
+        elif model_type == 'lstm':
+            yhat, model_ = build_lstm(X_train, y_train, X_test)
+            yhat = yhat.reshape(-1)
+        
+        model_evaluation(y_test, yhat)
+        
+        ypred.append(yhat)
+        models.append(model_)
             
-            ypred.append(yhat)
-            models.append(model_)
-            
-        return ypred, models
+    return ypred, models
 
 def model_evaluation(true, pred):
     idx = np.where(true != 0) # avoid dividing by 0 in mape calculation
     true2 = true[idx]
     pred2 = pred[idx]
-
     plt.plot(true2, label = 'True')
     plt.plot(pred2, label = 'Predicted')
     plt.title('True data vs prediction')
     plt.legend()
     plt.show()
     
-    corr = np.corrcoef(true2, pred)
+    corr = np.corrcoef(true2, pred2)
     sns.heatmap(corr, annot=True)
     plt.title('Correlation true data - prediction')
     plt.show()
