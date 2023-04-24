@@ -4,33 +4,22 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import statsmodels.api as sm
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
-from statsmodels.tsa.stattools import adfuller, kpss, ccf
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split
-from chart_studio.plotly import plot_mpl
-from math import sqrt
-
+from statsmodels.tsa.stattools import adfuller, kpss
 import warnings
 warnings.filterwarnings('ignore')
 from pylab import rcParams
-rcParams['figure.figsize'] = 10, 6
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.arima.model import ARIMA
 import statsmodels.api as sm
 from pmdarima.arima import auto_arima
-from sklearn.metrics import mean_squared_error, mean_absolute_error
-import math
-# from nsepy import get_history
-from datetime import date
 import pandas_profiling as pp
-import arch
 from scipy import stats 
 
 import warnings
 warnings.filterwarnings('ignore')
 
 
-
+rcParams['figure.figsize'] = 10, 6
 
 # function to visualize the price and the scatterplot of the prices 
 
