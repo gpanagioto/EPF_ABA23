@@ -242,6 +242,7 @@ def create_quarterly_data(df):
     r.index=df.Timestamp
     r=r[~r.index.duplicated(keep='first')]
     r=r.resample('15Min')
-    r=r.interpolate(method='pad')
-    #r.to_csv('dataset_management\data\clean\clean_quarterly.csv',index=False)
+    r=r.interpolate(method='pad').astype('int')
+    r=r[-24*4:]
+    r.to_csv('dataset_management\data\clean\clean_quarterly.csv',index=False)
     return r
