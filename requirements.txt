@@ -1,5 +1,6 @@
 arch
 chart_studio
+entsoe_py
 keras
 lightgbm
 matplotlib
@@ -15,3 +16,7 @@ statsmodels
 tensorflow
 xgboost
 yfinance
+holidays
+prophet
+dvc
+dvc[gdrive]
