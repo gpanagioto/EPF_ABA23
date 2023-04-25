@@ -3,6 +3,7 @@ from merging_code import DataMerging, find_folder
 import yaml
 import os
 import datetime as datetime
+import argparse
 
 # Get the absolute path to the project directory of the script
 project_dir = os.path.abspath(os.path.dirname('EPF_ABA23'))
@@ -56,7 +57,7 @@ def main(search_path: str, save_path: str, files: dict):
             
                 print(file_name)
 
-                df3 = merging.energy_data_timestamp(file_name)
+                df3 = merging.energy_data_timestamp(file_name, columns=None)
 
                 df_conc = pd.concat([df_conc, df3], ignore_index=False)    
 

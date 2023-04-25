@@ -1,4 +1,4 @@
-./dataset_management/data/
+./dataset_management/data/*
 .ipynb_checkpoints/
 __pycache__/
-data/
+Untitled.ipynb

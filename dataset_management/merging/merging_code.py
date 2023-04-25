@@ -81,20 +81,29 @@ class DataMerging():
             df.rename(columns={'Close': file_name.split('.')[0] + '_Price'}, inplace=True)
 
         df.index.rename('Timestamp', inplace=True)
+        
 
         return df.sort_index()
     
-    def energy_data_timestamp(self, file_name: str) -> pd.DataFrame:
+    def energy_data_timestamp(self, file_name: str, columns: list) -> pd.DataFrame:
 
         file = find_file(file_name, self.search_path)
-
+        if columns:
+            usecols = columns
+        else:
+            usecols = [ 'MTU', 'Biomass  - Actual Aggregated [MW]',
+                        'Waste  - Actual Aggregated [MW]']
+            
         try:
-            df = pd.read_csv(file, usecols=['MTU','Biomass  - Actual Aggregated [MW]', 'Waste  - Actual Aggregated [MW]'])
+            df = pd.read_csv(file, usecols=usecols)
+           
             df['Timestamp_cet'] = df['MTU'].apply(lambda row: row.split('-')[0])
             df['Timestamp'] = df['Timestamp_cet'].apply(lambda row: datetime.datetime.strptime(row, '%d.%m.%Y %H:%M '))
             df.drop(['Timestamp_cet','MTU'], inplace=True, axis=1)
             df.set_index('Timestamp', inplace=True)
-        except:
+
+        except Exception as e: 
+            print(e)
             pass
 
         return df.sort_index()

@@ -6,8 +6,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from prophet import Prophet
 from prophet.diagnostics import cross_validation, performance_metrics
-
-# import sklearn
 from sklearn.preprocessing import StandardScaler, PowerTransformer
 from sklearn.decomposition import PCA
 
@@ -18,9 +16,12 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # add year, quarter, month, day, date and hour columns
-def get_dt_info(df:pd.DataFrame(), dt_col:str,
-                yr:bool = False, qt:bool = False, mo:bool = False,
-                w:bool = False, date:bool = False, day:bool = False, wd:bool = False, h:bool = False) -> pd.DataFrame():
+def get_dt_info(df:pd.DataFrame(), 
+                dt_col:str, yr:bool = False, 
+                qt:bool = False, mo:bool = False,
+                w:bool = False, date:bool = False,
+                day:bool = False, wd:bool = False, 
+                h:bool = False) -> pd.DataFrame():
     if yr: # year
         df['Year'] = df[dt_col].dt.year
     if qt: # quarter
@@ -45,6 +46,7 @@ def get_dt_info(df:pd.DataFrame(), dt_col:str,
     return df
 
 def add_business_days(df:pd.DataFrame(), country:str, inplace:bool = False) -> pd.DataFrame():
+    
     country_calendar = getattr(holidays, country)
     custom_business_days = pd.tseries.offsets.CustomBusinessDay(calendar = country_calendar)
     start = min(df['Date']) # generalitzar columna?
