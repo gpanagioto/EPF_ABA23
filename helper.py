@@ -266,7 +266,7 @@ def build_rf_2(x_train, y_train, x_test, random_search = False):
     return ypred, params
 
 
-def gamw(x_train, y_train, random_search=False):
+def rand_f_imp(x_train, y_train, random_search=False):
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.model_selection import RandomizedSearchCV
     rf = RandomForestRegressor(random_state=42, min_samples_split=10)
