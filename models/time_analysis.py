@@ -171,7 +171,9 @@ def test_arima_(df_energy1,xtest,column,steps,hourly,season=False,exog=None):
             data=df_energy1[column][df_energy1.index<l]
             if exog!=None:
                 exog=df_energy1[['DK_1_imports', 'SE_4_imports', 'DK_1_exports','SE_4_exports','Forecasted_Load', 'Actual_Load','Solar_[MW]', 'ttf_price', 'coal_price', 'co2_price','Biomass_Actual_Aggregated_[MW]', 'Waste_Actual_Aggregated_[MW]','DE_LU_AT_imports', 'DE_LU_AT_exports', 'Wind Total']][df_energy1.index<l]
-            model=ARIMA(data.values,exog, order=(8, 0, 1)) #Use precalculated orders
+                model=ARIMA(data.values,exog, order=(8, 0, 0)) #Use precalculated orders
+            else:
+                model=ARIMA(data.values,exog, order=(8, 0, 1)) #Use precalculated orders
             arima=model.fit()
             pred=arima.predict(n_periods=steps )
             print(arima.summary())
