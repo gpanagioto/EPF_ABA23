@@ -1,28 +1,19 @@
-import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import warnings
-warnings.filterwarnings('ignore')
-
-from sklearn.metrics import confusion_matrix, recall_score, accuracy_score, precision_score, plot_confusion_matrix, f1_score,multilabel_confusion_matrix
+from sklearn.metrics import confusion_matrix, recall_score, precision_score, plot_confusion_matrix, multilabel_confusion_matrix
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.neural_network import MLPClassifier
-
-import tensorflow as tf
 from sklearn.metrics import classification_report
 import lightgbm
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix
-from keras.utils.np_utils import to_categorical
 from xgboost import XGBClassifier
 from keras import regularizers
-
+import warnings
+warnings.filterwarnings('ignore')
 
 
 # function to evaluate predictions
@@ -90,9 +81,9 @@ def binary_models(model,x_train,y_train,x_test,y_test,x_val=False,y_val=False,ge
         # evaluate the keras model
         y_pred = model.predict(x_val)
         y_pred = (y_pred > 0.5).astype(int)
-        nn_results(model,x_train,y_train)
-        nn_results(model,x_val,y_val)
-        nn_results(model,x_test,y_test)
+        model.nn_results(model,x_train,y_train)
+        model.nn_results(model,x_val,y_val)
+        model.nn_results(model,x_test,y_test)
         model_=model
         return model_
     elif model=='nnReg':
@@ -111,11 +102,11 @@ def binary_models(model,x_train,y_train,x_test,y_test,x_val=False,y_val=False,ge
         y_pred = model.predict(x_val)
         y_pred = (y_pred > 0.5).astype(int)
         print('Train results')
-        nn_results(model,x_train,y_train)
+        model.nn_results(model,x_train,y_train)
         print('Vaildation results')
-        nn_results(model,x_val,y_val)
+        model.nn_results(model,x_val,y_val)
         print('Test results')
-        nn_results(model,x_test,y_test)
+        model.nn_results(model,x_test,y_test)
         model_=model
         return model_
     ypred=model_.predict(x_test)

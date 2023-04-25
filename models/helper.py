@@ -1,22 +1,21 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
 from sklearn import metrics
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
-
 import datetime as dt
 import seaborn as sns
-
 import xgboost as xg
+import os
+from __init__ import data_path, root_dir
 
 #%%
 def read_our_data(file_name):
-    file_dir = './dataset_management/data/clean/'+file_name
+    file_dir = os.path.join(data_path,'clean',file_name)
     df = pd.read_csv(file_dir)
     cols_check = ['Timestamp', 'Date']
     for col in cols_check:
@@ -266,7 +265,7 @@ def build_rf_2(x_train, y_train, x_test, random_search = False):
     return ypred, params
 
 
-def rand_f_imp(x_train, y_train, random_search=False):
+def gamw(x_train, y_train, random_search=False):
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.model_selection import RandomizedSearchCV
     rf = RandomForestRegressor(random_state=42, min_samples_split=10)
@@ -300,13 +299,17 @@ def xgb_feat_imp(x_train, y_train):
     importances = xg_reg.feature_importances_
     return importances
 
+# def lin_reg_feat_importance(x_train, y_train, x_test, y_test):
+    
+#     # Scaling the data
+#     model_lr = Pipeline([
+#         ("scaler", StandardScaler()),
+#         ("linear_regression", LinearRegression())
+#     ])
 
-def remove_brackets(df):
+#     # R^2 score calculation
+#     model_lr.fit(x_train, y_train)
+#     model_lr.score(x_test, y_test)
+#     lr_imp = imp_df(df.columns, model_lr["linear_regression"].coef_)
 
-    new_columns = []
-    for column in df.columns:
-        new_column = column.replace("[", "").replace("]", "")
-        new_columns.append(new_column)
-    df.columns = new_columns
-
-    return df
+#     lr_imp
