@@ -10,6 +10,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.neural_network import MLPRegressor 
 from skforecast.ForecasterAutoreg import ForecasterAutoreg
 from sklearn.linear_model import Ridge
+from numpy import savetxt
 
 import datetime as dt
 import seaborn as sns
@@ -164,6 +165,9 @@ def build_far(x_train, y_train, x_test,steps):
     ypred = model_.predict(steps,exog=x_train)
     return ypred, model_
 
+def fit_moving_average(timeseries, lag=3):
+    return list([np.average(timeseries.iloc[max(i-lags,0):i-1]) for i in range(1,len(timeseries)+1)])
+
 def build_lstm (x_dev, y_dev, x_test):
 
     tf.random.set_seed(42)
@@ -207,7 +211,6 @@ def run_model(model_type, df, k_folds, split_method, train_start, features, targ
         # standardize
         if X_std == True:
             X_train, X_test = standardize(X_train, X_test, cols_std)
-
         if model_type == 'lr':
             yhat, model_ = build_lr(X_train, y_train, X_test)
         elif model_type == 'rf':
@@ -228,7 +231,7 @@ def run_model(model_type, df, k_folds, split_method, train_start, features, targ
     return ypred, models
 
 
-def run_time_model(model_type, df, k_folds, split_method, train_start, features, target,steps,exog=None): # argument timeframe is necessary to choose baseline
+def run_time_model(model_type, df, k_folds, split_method, train_start, features, target,steps,exog=None,hourly=None): # argument timeframe is necessary to choose baseline
     # model_type: lr (linear regression), rf (random forest), xgb (XGBoost), lstm (long-short term memory - recursive neural network)
 
     ypred = []
@@ -246,7 +249,10 @@ def run_time_model(model_type, df, k_folds, split_method, train_start, features,
 
 
         if model_type == 'arima':
-            yhat = test_arima_(df,test_set,target,steps,hourly=False,season=False,exog=exog)
+            if hourly==None:
+                yhat = test_arima_(df,test_set,target,steps,hourly=False,season=False,exog=exog)
+            else:
+                yhat = test_arima_(df,test_set,target,steps,hourly=True,season=False,exog=exog)
             yhat = yhat[:steps]
             if exog!=None:
                 yhat=yhat.values
@@ -254,9 +260,17 @@ def run_time_model(model_type, df, k_folds, split_method, train_start, features,
             yhat, model_ = build_far(X_train, y_train, X_test,steps)
             yhat=yhat.reset_index().copy()
             yhat=yhat['pred']
+        #""" the code to obtain the values for the scheduler, one value per each quarter
+        if k==0:
+            print(test_set0.index)# to identify the index of the tested data
+            a_repeated = np.repeat(yhat, 4)
+            b_repeated = np.repeat(y_test[:steps], 4)
+            a_repeated=np.around(a_repeated, decimals=2).astype(int)
+            b_repeated=np.around(b_repeated, decimals=2).astype(int)
+            savetxt('data_forecasted.csv',  a_repeated, delimiter='/n')
+            savetxt('data.csv',  b_repeated, delimiter='/n')
+        #"""
         
-        print(yhat)
-        print(yhat.shape)
         plt.plot(y_test[:steps], label = 'True')
         plt.plot(yhat, label = 'Predicted')
         plt.title('True data vs prediction')
