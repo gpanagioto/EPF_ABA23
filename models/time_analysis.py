@@ -150,6 +150,40 @@ def fit_arima_(df_energy1,column,max_p,max_d,max_q,hourly,season=False,exog=None
         predictions.append(predicted_mu)
     return order_p,order_q,predictions,test_data
 
+
+def test_arima_(df_energy1,xtest,column,steps,hourly,season=False,exog=None):
+    order_p=[]
+    order_q=[]
+    predictions=[]
+    if hourly==True:
+        for i in range(24):
+            cnt=i
+            train_data = (df_energy1[df_energy1.Hour==cnt][column])
+            #acf_plot(df_energy_index['Day-ahead prices'],200)
+            #slow train 
+            best_mod = fit_arima_fun(train_data,max_p,max_d,max_q,seasonal=season,exog=exog,print_summary=True)
+            p,d,q=best_mod.order
+            order_p.append(p)
+            order_q.append(q)
+            predicted_mu = best_mod.predict(n_periods=steps)
+            #plotting(test_data[:7].reset_index(), predicted_mu, 0, train_data)
+            predictions.append(predicted_mu)
+        
+    if hourly== False:
+        for l in xtest[column].index:
+            data=df_energy1[column][df_energy1.index<l]
+            if exog!=None:
+                exog=df_energy1[['DK_1_imports', 'SE_4_imports', 'DK_1_exports','SE_4_exports','Forecasted_Load', 'Actual_Load','Solar_[MW]', 'ttf_price', 'coal_price', 'co2_price','Biomass_Actual_Aggregated_[MW]', 'Waste_Actual_Aggregated_[MW]','DE_LU_AT_imports', 'DE_LU_AT_exports', 'Wind Total']][df_energy1.index<l]
+            model=ARIMA(data.values,exog, order=(8, 0, 1)) #Use precalculated orders
+            arima=model.fit()
+            pred=arima.predict(n_periods=steps )
+            print(arima.summary())
+            break
+
+    return pred[:steps]
+
+
+
 def acf_plot(timeseries,lag):
     plt.rc("figure", figsize=(20, 8))
     plot_acf(timeseries, lags = lag)

@@ -8,6 +8,8 @@ from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
 from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit, train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.neural_network import MLPRegressor 
+from skforecast.ForecasterAutoreg import ForecasterAutoreg
+from sklearn.linear_model import Ridge
 
 import datetime as dt
 import seaborn as sns
@@ -15,6 +17,7 @@ import seaborn as sns
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+from time_analysis import *
 
 import xgboost as xg
 
@@ -58,6 +61,7 @@ def split_timeseries(df:pd.DataFrame(), train_start:list, cnt:int, method:int, p
 
     else:
         end = train_start[cnt +1] - dt.timedelta(hours = 1)
+        the_end = train_start[cnt +1] - dt.timedelta(hours = 2)
 
     if method == 0:
         start = train_start[cnt]
@@ -70,7 +74,7 @@ def split_timeseries(df:pd.DataFrame(), train_start:list, cnt:int, method:int, p
         delta=(end-start).days
         train_end = end - pd.DateOffset(days = 30)
         test_start = train_end + pd.DateOffset(hours = 1)
-    
+
     print(f'train {start} - {train_end}, test {test_start} - {end}')
     trainset = df.loc[start:train_end]
     testset = df.loc[test_start:end]
@@ -132,7 +136,6 @@ def build_rf(x_train, y_train, x_test, random_search = True):
         model_ = model_.best_estimator_ # evaluate optimal model
     else:
         model_.fit(x_train, y_train)
-        
     ypred = model_.predict(x_test)
     params = model_.get_params()
     
@@ -152,6 +155,13 @@ def build_gb(x_train, y_train, x_test):
     
     ypred = model_.predict(x_test)
 
+    return ypred, model_
+
+def build_far(x_train, y_train, x_test,steps):
+    model_ = ForecasterAutoreg(regressor = Ridge(),lags = 336)
+    y_train=pd.Series(data=y_train)
+    model_.fit(y_train,exog=x_train)
+    ypred = model_.predict(steps,exog=x_train)
     return ypred, model_
 
 def build_lstm (x_dev, y_dev, x_test):
@@ -214,6 +224,47 @@ def run_model(model_type, df, k_folds, split_method, train_start, features, targ
         
         ypred.append(yhat)
         models.append(model_)
+            
+    return ypred, models
+
+
+def run_time_model(model_type, df, k_folds, split_method, train_start, features, target,steps,exog=None): # argument timeframe is necessary to choose baseline
+    # model_type: lr (linear regression), rf (random forest), xgb (XGBoost), lstm (long-short term memory - recursive neural network)
+
+    ypred = []
+    models = []
+
+    for k in range(k_folds):
+        print('Iteration ', k)
+
+        # split in train and test set
+        train_set, test_set = split_timeseries(df, train_start, k, method = split_method)
+        test_set0 = test_set.copy()
+        # get features and target
+        X_train, y_train = get_feature_target(test_set0, features, target)
+        X_test, y_test = get_feature_target(test_set0, features, target)
+
+
+        if model_type == 'arima':
+            yhat = test_arima_(df,test_set,target,steps,hourly=False,season=False,exog=exog)
+            yhat = yhat[:steps]
+            if exog!=None:
+                yhat=yhat.values
+        if model_type == 'far':
+            yhat, model_ = build_far(X_train, y_train, X_test,steps)
+            yhat=yhat.reset_index().copy()
+            yhat=yhat['pred']
+        
+        print(yhat)
+        print(yhat.shape)
+        plt.plot(y_test[:steps], label = 'True')
+        plt.plot(yhat, label = 'Predicted')
+        plt.title('True data vs prediction')
+        plt.legend()
+        plt.show()
+        #model_evaluation(y_test[:steps], yhat)
+        
+        ypred.append(yhat)
             
     return ypred, models
 
