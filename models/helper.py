@@ -1,22 +1,21 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
 from sklearn import metrics
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
-
 import datetime as dt
 import seaborn as sns
-
 import xgboost as xg
+import os
+from __init__ import data_path, root_dir
 
 #%%
 def read_our_data(file_name):
-    file_dir = './dataset_management/data/clean/'+file_name
+    file_dir = os.path.join(data_path,'clean',file_name)
     df = pd.read_csv(file_dir)
     cols_check = ['Timestamp', 'Date']
     for col in cols_check:
