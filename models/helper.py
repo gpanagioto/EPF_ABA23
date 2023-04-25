@@ -1,21 +1,22 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
 from sklearn import metrics
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
+
 import datetime as dt
 import seaborn as sns
+
 import xgboost as xg
-import os
-from __init__ import data_path, root_dir
 
 #%%
 def read_our_data(file_name):
-    file_dir = os.path.join(data_path,'clean',file_name)
+    file_dir = './dataset_management/data/clean/'+file_name
     df = pd.read_csv(file_dir)
     cols_check = ['Timestamp', 'Date']
     for col in cols_check:
@@ -130,8 +131,8 @@ def build_xgb(x_train, y_train, x_test):
 
     return ypred, params
 
-def build_lstm (x_train, y_train, x_test, y_test):
-    
+def nn (x_train, y_train, x_test, y_test):
+
     model_ = nn
     ypred = model_.predict(x_test)
     return ypred, model_
@@ -163,8 +164,8 @@ def run_model(model_type, df, k_folds, split_method, train_start, features, targ
                 yhat, model_ = build_rf(X_train_std, y_train, X_test_std, random_search = True)
             elif model_type == 'xgb':
                 yhat, model_ = build_xgb(X_train_std, y_train, X_test_std)
-            elif model_type == 'lstm':
-                yhat, model_ = build_lstm(X_train_std, y_train, X_test_std)
+            elif model_type == 'nn':
+                yhat, model_ = build_nn(X_train_std, y_train, X_test_std)
 
             print('Iteration ', k)
             model_evaluation(yhat, y_test)
@@ -265,7 +266,7 @@ def build_rf_2(x_train, y_train, x_test, random_search = False):
     return ypred, params
 
 
-def gamw(x_train, y_train, random_search=False):
+def rand_f_imp(x_train, y_train, random_search=False):
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.model_selection import RandomizedSearchCV
     rf = RandomForestRegressor(random_state=42, min_samples_split=10)
@@ -299,17 +300,13 @@ def xgb_feat_imp(x_train, y_train):
     importances = xg_reg.feature_importances_
     return importances
 
-# def lin_reg_feat_importance(x_train, y_train, x_test, y_test):
-    
-#     # Scaling the data
-#     model_lr = Pipeline([
-#         ("scaler", StandardScaler()),
-#         ("linear_regression", LinearRegression())
-#     ])
 
-#     # R^2 score calculation
-#     model_lr.fit(x_train, y_train)
-#     model_lr.score(x_test, y_test)
-#     lr_imp = imp_df(df.columns, model_lr["linear_regression"].coef_)
+def remove_brackets(df):
 
-#     lr_imp
+    new_columns = []
+    for column in df.columns:
+        new_column = column.replace("[", "").replace("]", "")
+        new_columns.append(new_column)
+    df.columns = new_columns
+
+    return df
