@@ -177,6 +177,7 @@ def build_lstm (x_dev, y_dev, x_test):
 
     return ypred, model_
 
+
 def run_model(model_type, df, k_folds, split_method, train_start, features, target, cols_std, X_std = True): # argument timeframe is necessary to choose baseline
     # model_type: lr (linear regression), rf (random forest), xgb (XGBoost), lstm (long-short term memory - recursive neural network)
 
@@ -205,9 +206,13 @@ def run_model(model_type, df, k_folds, split_method, train_start, features, targ
             yhat, model_ = build_xgb(X_train, y_train, X_test)
         elif model_type == 'gb':
             yhat, model_ = build_gb(X_train, y_train, X_test)
-        elif model_type == 'lstm':
-            yhat, model_ = build_lstm(X_train, y_train, X_test)
+        #elif model_type == 'lstm':
+        #    yhat, model_ = build_lstm(X_train, y_train, X_test)
+        #    yhat = yhat.reshape(-1)
+        elif model_type == 'lstm_new':
+            yhat, model_ = build_lstm_new(X_train, y_train, X_test)
             yhat = yhat.reshape(-1)
+      
         
         model_evaluation(y_test, yhat)
         
