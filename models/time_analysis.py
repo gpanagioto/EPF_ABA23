@@ -14,7 +14,7 @@ import statsmodels.api as sm
 from pmdarima.arima import auto_arima
 import pandas_profiling as pp
 from scipy import stats 
-
+from numpy import savetxt
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -97,8 +97,6 @@ def split_data(df,show=False):
         plt.legend()
     return train_data,test_data
 
-def fit_moving_average(timeseries, lags):
-    return list([np.average(timeseries.iloc[max(i-lags,0):i-1]) for i in range(1,len(timeseries)+1)])
 
 def fit_arima_fun(timeseries,max_p,max_d,max_q,season,print_summary=False,exog=None):
     model_autoARIMA = auto_arima(timeseries, exog, start_p=0, start_q=0,
@@ -152,22 +150,21 @@ def fit_arima_(df_energy1,column,max_p,max_d,max_q,hourly,season=False,exog=None
 
 
 def test_arima_(df_energy1,xtest,column,steps,hourly,season=False,exog=None):
-    order_p=[]
-    order_q=[]
+    order_p=[4, 4, 4, 3, 5, 6, 6, 6, 5, 6, 6, 5, 5, 5, 6, 6, 5, 3, 2, 6, 6, 4, 4, 6]
+    order_q=[1, 1, 3, 1, 1, 3, 4, 4, 5, 6, 3, 5, 5, 6, 3, 3, 6, 4, 2, 0, 1, 1, 2, 3]
     predictions=[]
     if hourly==True:
         for i in range(24):
-            cnt=i
-            train_data = (df_energy1[df_energy1.Hour==cnt][column])
-            #acf_plot(df_energy_index['Day-ahead prices'],200)
-            #slow train 
-            best_mod = fit_arima_fun(train_data,max_p,max_d,max_q,seasonal=season,exog=exog,print_summary=True)
-            p,d,q=best_mod.order
-            order_p.append(p)
-            order_q.append(q)
-            predicted_mu = best_mod.predict(n_periods=steps)
-            #plotting(test_data[:7].reset_index(), predicted_mu, 0, train_data)
-            predictions.append(predicted_mu)
+            train_data = (df_energy1[df_energy1.Hour==i][column])
+            for l in xtest[xtest.Hour==i][column].index:
+                data=(df_energy1[df_energy1.Hour==i][column])[df_energy1[df_energy1.Hour==i].index<l]
+                if exog!=None:
+                    exog=df_energy1[['DK_1_imports', 'SE_4_imports', 'DK_1_exports','SE_4_exports','Forecasted_Load', 'Actual_Load','Solar_[MW]', 'ttf_price', 'coal_price', 'co2_price','Biomass_Actual_Aggregated_[MW]', 'Waste_Actual_Aggregated_[MW]','DE_LU_AT_imports', 'DE_LU_AT_exports', 'Wind Total']][df_energy1.index<l]
+                model=ARIMA(data.values,exog, order=(order_p[i], 0, order_q[i])) #Use precalculated orders
+                arima=model.fit()
+                pred=arima.predict(n_periods=steps )
+                print(arima.summary())
+                break
         
     if hourly== False:
         for l in xtest[column].index:
@@ -260,8 +257,8 @@ def req():
 
 
 
-def create_quarterly_data(df):
-    r=df.Day_Ahead_price.copy()
+def create_quarterly_data(df,column):
+    r=df[column].copy()
     r.index=df.Timestamp
     r=r[~r.index.duplicated(keep='first')]
     r=r.resample('15Min')
@@ -269,3 +266,10 @@ def create_quarterly_data(df):
     r=r[-24*4:]
     r.to_csv('dataset_management\data\clean\clean_quarterly.csv',index=False)
     return r
+
+
+
+def create_quarterly_data2(ar,name):
+    a_repeated = np.repeat(ar, 4).round(2)
+    savetxt('data_'+name+'.csv',  a_repeated, delimiter='/n')
+    return 
