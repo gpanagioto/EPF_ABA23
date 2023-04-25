@@ -360,7 +360,7 @@ def plots(price,df0,machines,book0,book1,name,dfemi,dfren):
     ax1.set_title("Energy cost of Machine 1 ")
     ax1.set_xlabel('Time in quarters')
     ax2.plot(val1,label="Energy cost")
-    ax2.set_title("Energy cost of Machine 1 ")
+    ax2.set_title("Energy cost of Machine 2 ")
     ax2.set_xlabel('Time in quarters')
     plt.show()
 
@@ -384,7 +384,7 @@ def plots(price,df0,machines,book0,book1,name,dfemi,dfren):
     plt.show()
  
 
-def plots_normal(price_a,book1):
+def plots_normal(price_a,book1,name):
     val=[]
     total=0
     on=[]
@@ -402,8 +402,8 @@ def plots_normal(price_a,book1):
         on.append(flag*50)
         total+=value
 
-    print("Total",total)
-    plt.plot(val,label="Energy cost")
+    print("Total cost of operating the machine"+name,total/4)
+    plt.plot(val,label="Energy cost of machine: "+name)
     plt.title("Energy cost")
     plt.show()
     plt.title("Electricity price and activation of the engine")
