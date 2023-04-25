@@ -1,14 +1,14 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import os
 from sklearn import metrics
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
-
+from __init__ import root_dir, data_path
 import datetime as dt
 import seaborn as sns
 
@@ -16,7 +16,7 @@ import xgboost as xg
 
 #%%
 def read_our_data(file_name):
-    file_dir = './dataset_management/data/clean/'+file_name
+    file_dir = os.path.join(data_path,'clean',file_name)
     df = pd.read_csv(file_dir)
     cols_check = ['Timestamp', 'Date']
     for col in cols_check:
@@ -310,3 +310,26 @@ def remove_brackets(df):
     df.columns = new_columns
 
     return df
+
+
+
+
+##### Energy Mix
+
+def co2_calculator(df, co2_dict, type_):
+    
+    type_sources ={'renew':{'Biomass  - Actual Aggregated [MW]','Solar  - Actual Aggregated [MW]',
+                            'Waste  - Actual Aggregated [MW]','Wind Offshore  - Actual Aggregated [MW]',
+                            'Wind Onshore  - Actual Aggregated [MW]'},
+                   'non_renew':{'Fossil Gas  - Actual Aggregated [MW]','Fossil Hard coal  - Actual Aggregated [MW]',
+                               'Fossil Oil  - Actual Aggregated [MW]'}
+    }
+    
+    if type_ == 'renew':
+        renew_dict = dict((k, co2_dict[k]) for k in type_sources['renew'])
+        df['Renew_CO2_emissions'] = df.apply(lambda row: np.sum([row[column]*value for column, value in renew_dict.items()])/1000,axis=1)
+    elif type_ == 'non_renew':
+        norenew_dict = dict((k, co2_dict[k]) for k in type_sources['non_renew'])
+        df['NonRenew_CO2_emissions'] = df.apply(lambda row: np.sum([row[column]*value for column, value in norenew_dict.items()])/1000,axis=1)
+    else:
+        df['Total_CO2_emissions'] = df.apply(lambda row: np.sum([row[column]*value for column, value in co2_dict.items()])/1000,axis=1)
