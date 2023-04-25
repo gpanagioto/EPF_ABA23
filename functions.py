@@ -2,12 +2,8 @@ import numpy as np
 import pandas as pd
 
 
-# def split_dataset(df, year_s, attribute):
-#     df_year_s = df[df['Year'] == year_s]
-#     df_year_s_gr = df_year_s.groupby('Hour')[attribute].mean().reset_index()
-#     df_year_s_gr = df_year_s_gr.set_index('Hour', drop = True)
-    
-#     return df_year_s_gr
+# This function creates new dataframes, grouped by hour and the mean of the attribute. 
+# Passing in the dataframe, the year and the desired attribute, will return the necessary dataframe
 
 def split_dataset(df, year_s, attribute):
     df_year_s = df[df['Year'] == year_s]
@@ -15,16 +11,9 @@ def split_dataset(df, year_s, attribute):
     return df_year_s_gr
 
 
-# def plot_hourly_data(df, year, attribute):
-    
-#     import matplotlib.pyplot as plt
-    
-#     df_year_attribute = split_dataset(df, year, attribute)
-#     plt.plot(df_year_attribute.index, df_year_attribute[attribute])
-#     plt.xlabel('Hour')
-#     plt.ylabel(attribute)
-#     plt.title(f'Hourly {attribute} for year {year}')
-#     plt.show()
+
+# This function takes as an input a dataframe, a year and a feature. Combined with the function 'split_dataset', it creates 
+# a plot of the desired feature, throughout the 24-hour frame
 
 def plot_hourly_data(df, year, attribute):
     import matplotlib.pyplot as plt
@@ -48,21 +37,8 @@ def plot_hourly_data(df, year, attribute):
 
 
 
-
-# def plot_hourly_data_all_years(df, years, attribute):
-    
-#     import matplotlib.pyplot as plt
-    
-#     plt.figure(figsize=(12,6))
-#     for year in years:
-#         df_year_attribute = split_dataset(df, year, attribute)
-#         plt.plot(df_year_attribute, label=year)
-#     plt.xlabel('Hour of the day')
-#     plt.ylabel(attribute)
-#     plt.title(f'Hourly {attribute} for all years')
-#     plt.legend()
-#     plt.show()
-
+# A function that receives as input a a dataframe, a year and a feature. Combined with the function 'split_dataset' and a list of years, 
+# it will create a single plot with all the lines of all the desired years.
 
 def plot_hourly_data_all_years(df, years, attribute):
     
@@ -80,6 +56,9 @@ def plot_hourly_data_all_years(df, years, attribute):
     plt.show()
     
     return
+
+
+
 
 
 def calculate_load_difference(df, year):
@@ -107,6 +86,11 @@ def plot_load_difference(df, year):
     plt.show()
     
     return
+
+
+
+# This function gets as input parameters a dataframe, two different years and an attribute of the dataframe. It then creates a dataframe,
+# that its features are the values of the attribute for these two years, as well as their difference.
 
 def compare_years(df, year_1, year_2, attribute):
     df_year_1 = split_dataset(df, year_1, attribute)
