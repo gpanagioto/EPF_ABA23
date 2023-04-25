@@ -1,6 +1,4 @@
-arch
-chart_studio
-entsoe_py
+holidays
 keras
 lightgbm
 matplotlib
@@ -8,6 +6,7 @@ numpy
 pandas
 pandas_profiling
 pmdarima
+prophet
 PyYAML
 scikit_learn
 scipy
@@ -15,8 +14,5 @@ seaborn
 statsmodels
 tensorflow
 xgboost
+ydata_profiling
 yfinance
-holidays
-prophet
-dvc
-dvc[gdrive]
