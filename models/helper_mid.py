@@ -162,7 +162,9 @@ def build_far(x_train, y_train, x_test,steps):
     model_ = ForecasterAutoreg(regressor = Ridge(),lags = 336)
     y_train=pd.Series(data=y_train)
     model_.fit(y_train,exog=x_train)
-    ypred = model_.predict(steps,exog=x_train)
+    print(x_train.index[0])
+    print(x_test.index[0])
+    ypred = model_.predict(steps,exog=x_test)
     return ypred, model_
 
 def fit_moving_average(timeseries, lag=3):
@@ -243,8 +245,9 @@ def run_time_model(model_type, df, k_folds, split_method, train_start, features,
         # split in train and test set
         train_set, test_set = split_timeseries(df, train_start, k, method = split_method)
         test_set0 = test_set.copy()
+        train_set0 = train_set.copy()
         # get features and target
-        X_train, y_train = get_feature_target(test_set0, features, target)
+        X_train, y_train = get_feature_target(train_set0, features, target)
         X_test, y_test = get_feature_target(test_set0, features, target)
 
 
