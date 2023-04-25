@@ -273,3 +273,141 @@ def create_quarterly_data2(ar,name):
     a_repeated = np.repeat(ar, 4).round(2)
     savetxt('data_'+name+'.csv',  a_repeated, delimiter='/n')
     return 
+
+
+
+def plotsw(price,df0,machine,book,name,dfemi,dfren):
+    val=[]
+    total=0
+    on=[]
+    pricing=[]
+    
+    for i in price.index:
+        value=0
+        flag=0
+        ind=df0[df0[machine]==i%96].index#find the index of the load
+        x=book.iloc[ind][0]#find the load
+        x = np.asarray(x, dtype='float64')
+        p=price.loc[i][0]#find the electricity price for that quarter
+        p = np.asarray(p, dtype='float64')
+        if np.isnan(x*p)==False:
+            value=x*p
+            value=value.item()
+            flag=1
+        val.append(value)
+        on.append(flag*50)
+        pricing.append(p)
+        total+=value
+    print("Total energy cost",total/4)
+    #create on subfigure with val1 and val2 plot
+
+    plt.plot(val,label="Energy cost")
+    plt.title("Energy cost with the "+name)
+    plt.show()
+    plt.title("Electricity price and activation of the engine"+name)
+    plt.plot(price,label="Electricity price")
+    plt.plot(dfemi*0.2,label="CO2 emissions")
+    plt.plot(dfren*100,label="Renewable percentage")
+    plt.plot(on,label="Activation of the engine")
+    plt.legend()
+    plt.show()
+
+def plots(price,df0,machines,book0,book1,name,dfemi,dfren):
+    val0=[]
+    total0=0
+    on0=[]
+    val1=[]
+    total1=0
+    on1=[]
+    for j in range(machines):
+        if j==0:
+            book=book0
+            val=val0
+            total=total0
+            on=on0
+        else:
+            book=book1
+            val=val1
+            total=total1
+            on=on1
+        for i in price.index:
+            value=0
+            flag=0
+            ind=df0[df0[j]==i].index#find the index of the load
+            x=book.iloc[ind][0]#find the load
+            x = np.asarray(x, dtype='float64')
+            p=price.loc[i][0]#find the electricity price for that quarter
+            p = np.asarray(p, dtype='float64')
+            if np.isnan(x*p)==False:
+                value=x*p
+                value=value.item()
+                flag=1
+            if j==0:
+                val0.append(value)
+                on0.append(flag*50)
+                total0+=value
+            else:
+                val1.append(value)
+                on1.append(flag*50)
+                total1+=value
+    print(name)
+    print("Total energy cost of machine1",total0/4)
+    print("Total energy cost of machine2",total1/4)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10,4))
+    ax1.plot(val0,label="Energy cost")
+    ax1.set_title("Energy cost of Machine 1 ")
+    ax1.set_xlabel('Time in quarters')
+    ax2.plot(val1,label="Energy cost")
+    ax2.set_title("Energy cost of Machine 1 ")
+    ax2.set_xlabel('Time in quarters')
+    plt.show()
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 5))
+    ax1.set_title(name)
+    ax1.plot(price,label="Electricity price")
+    ax1.plot(dfemi*0.2,label="CO2 emissions(scaled)")
+    ax1.plot(dfren*100,label="Renewable percentage(scaled)")
+    ax1.plot(on0,label="Activation of the engine(scaled)")
+    plt.xlabel('Time in quarters', axes=ax1)
+    ax1.set_xlabel('Time in quarters')
+    ax1.legend()
+    ax2.set_title(name)
+    ax2.plot(price,label="Electricity price")
+    ax2.plot(dfemi*0.2,label="CO2 emissions(scaled)")
+    ax2.plot(dfren*100,label="Renewable percentage(scaled)")
+    ax2.plot(on1,label="Activation of the engine(scaled)")
+    #set x axis label in thee subplot
+    ax2.set_xlabel('Time in quarters')
+    ax2.legend()
+    plt.show()
+ 
+
+def plots_normal(price_a,book1):
+    val=[]
+    total=0
+    on=[]
+    for i in price_a.index:
+        value=0
+        flag=0
+        if i>24 and i<book1.index.max()+24:
+            x=book1.iloc[i-24][0]#find the load at after 6am
+            x = np.asarray(x, dtype='float64')
+            p=price_a.loc[i][0]#find the value for that quarter
+            p = np.asarray(p, dtype='float64')
+            value=x*p
+            flag=1
+        val.append(value)
+        on.append(flag*50)
+        total+=value
+
+    print("Total",total)
+    plt.plot(val,label="Energy cost")
+    plt.title("Energy cost")
+    plt.show()
+    plt.title("Electricity price and activation of the engine")
+    plt.plot(price_a,label="Electricity price")
+    plt.xlabel('Time in quarters')
+    plt.ylabel('Price in €/MWh')
+    plt.plot(on)
+
+    plt.show()

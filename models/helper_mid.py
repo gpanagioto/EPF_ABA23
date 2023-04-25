@@ -242,9 +242,10 @@ def run_time_model(model_type, df, k_folds, split_method, train_start, features,
 
         # split in train and test set
         train_set, test_set = split_timeseries(df, train_start, k, method = split_method)
+        train_set0 = train_set.copy()
         test_set0 = test_set.copy()
         # get features and target
-        X_train, y_train = get_feature_target(test_set0, features, target)
+        X_train, y_train = get_feature_target(train_set0, features, target)
         X_test, y_test = get_feature_target(test_set0, features, target)
 
 
