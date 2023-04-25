@@ -11,6 +11,7 @@ PyYAML
 scikit_learn
 scipy
 seaborn
+skforecast
 statsmodels
 tensorflow
 xgboost
