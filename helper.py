@@ -314,3 +314,14 @@ def xgb_feat_imp(x_train, y_train):
 #     lr_imp = imp_df(df.columns, model_lr["linear_regression"].coef_)
 
 #     lr_imp
+
+
+
+
+def remove_brackets(df):
+    new_columns = []
+    for column in df.columns:
+        new_column = column.replace("[", "").replace("]", "")
+        new_columns.append(new_column)
+    df.columns = new_columns
+    return df
